@@ -21,3 +21,16 @@ function auction_dingfaire_init() {
 
     // Add other initialization actions here if needed
 }
+
+// Enqueue CSS and JS files
+add_action('wp_enqueue_scripts', 'auction_enqueue_scripts');
+function auction_enqueue_scripts() {
+    // Enqueue CSS file
+    wp_enqueue_style('auction-styles', plugin_dir_url(__FILE__) . 'css/auction-styles.css');
+
+    // Enqueue JS file with jQuery dependency
+    wp_enqueue_script('auction-scripts', plugin_dir_url(__FILE__) . 'js/auction-scripts.js', array('jquery'), null, true);
+}
+
+// Rest of your plugin code...
+

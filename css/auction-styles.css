@@ -1,0 +1,12 @@
+/* CSS styles for Auction plugin */
+.auction-container {
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+.auction-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Add more styles as needed */
