@@ -21,6 +21,8 @@ function auction_dingfaire_init() {
 
     // Add other initialization actions here if needed
 }
+// Activation hook
+register_activation_hook(__FILE__, 'auction_create_submit_auction_page');
 
 // Enqueue CSS and JS files
 add_action('wp_enqueue_scripts', 'auction_enqueue_scripts');
@@ -107,3 +109,37 @@ function auction_settings_page() {
     <?php
 }
 
+// Function to create "Submit Auction" page if not already present
+function auction_create_submit_auction_page() {
+    $page_title = 'Submit Auction';
+    $page_content = '[Submit_Auction]'; // Add content if needed
+    //$template_path = plugin_dir_path(__FILE__) . 'templates/submit-auction-template.php';
+
+    // Check if the page exists
+    $existing_page = get_page_by_title($page_title);
+
+    if (!$existing_page) {
+        // Page doesn't exist, create it
+        $page_data = array(
+            'post_title' => $page_title,
+            'post_content' => $page_content,
+            'post_status' => 'publish',
+            'post_type' => 'page'
+        );
+
+        // Insert the page into the database
+        $new_page_id = wp_insert_post($page_data);
+
+        // Set the page template
+        update_post_meta($new_page_id, '_wp_page_template', str_replace(WP_CONTENT_DIR, 'wp-content', $template_path));
+    }
+}
+
+function submit_auction_form_with_functionality(){
+    ob_start();
+
+    echo 'Hello';
+
+    return ob_get_clean();
+}
+add_shortcode('Submit_Auction','submit_auction_form_with_functionality');

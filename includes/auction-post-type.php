@@ -87,3 +87,74 @@ function auction_save_custom_fields($post_id) {
         );
     }
 }
+
+// Add image gallery custom field to Auction post type
+add_action('add_meta_boxes', 'auction_add_image_gallery_field');
+function auction_add_image_gallery_field() {
+    add_meta_box(
+        'auction_image_gallery',
+        'Auction Image Gallery',
+        'auction_render_image_gallery_field',
+        'auction',
+        'normal',
+        'default'
+    );
+}
+
+function auction_render_image_gallery_field($post) {
+    // Retrieve existing gallery images
+    $gallery_images = get_post_meta($post->ID, 'auction_gallery_images', true);
+    ?>
+    <div>
+        <label for="auction_gallery_images">Gallery Images:</label><br>
+        <input type="button" id="auction_gallery_upload_btn" class="button" value="Upload Images">
+        <input type="hidden" id="auction_gallery_images" name="auction_gallery_images" value="<?php echo esc_attr($gallery_images); ?>">
+        <div id="auction_gallery_preview"></div>
+    </div>
+    <script>
+
+jQuery(document).ready(function($) {
+    $('#auction_gallery_upload_btn').click(function(e) {
+        e.preventDefault();
+
+        // Define and open the WordPress media uploader
+        var imageUploader = wp.media({
+            title: 'Upload Images for Auction Gallery',
+            button: {
+                text: 'Add to Gallery'
+            },
+            multiple: true
+        });
+
+        // Handle selected images
+        imageUploader.on('select', function() {
+            var attachment = imageUploader.state().get('selection').toJSON();
+            var imageIDs = [];
+
+            // Extract image IDs and build image preview HTML
+            for (var i = 0; i < attachment.length; i++) {
+                imageIDs.push(attachment[i].id);
+                $('#auction_gallery_preview').append('<img src="' + attachment[i].url + '" alt="' + attachment[i].alt + '">');
+            }
+
+            // Update the hidden input field with image IDs
+            $('#auction_gallery_images').val(imageIDs.join(','));
+        });
+
+        // Open the media uploader
+        imageUploader.open();
+    });
+});
+
+
+    </script>
+    <?php
+}
+
+// Save image gallery custom field data
+add_action('save_post', 'auction_save_image_gallery_field');
+function auction_save_image_gallery_field($post_id) {
+    if (isset($_POST['auction_gallery_images'])) {
+        update_post_meta($post_id, 'auction_gallery_images', sanitize_text_field($_POST['auction_gallery_images']));
+    }
+}
