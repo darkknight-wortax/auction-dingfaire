@@ -104,52 +104,86 @@ function auction_add_image_gallery_field() {
 function auction_render_image_gallery_field($post) {
     // Retrieve existing gallery images
     $gallery_images = get_post_meta($post->ID, 'auction_gallery_images', true);
+    $image_ids = explode(',', $gallery_images);
     ?>
     <div>
         <label for="auction_gallery_images">Gallery Images:</label><br>
         <input type="button" id="auction_gallery_upload_btn" class="button" value="Upload Images">
         <input type="hidden" id="auction_gallery_images" name="auction_gallery_images" value="<?php echo esc_attr($gallery_images); ?>">
-        <div id="auction_gallery_preview"></div>
+        <div id="auction_gallery_preview">
+            <?php foreach ($image_ids as $image_id) : ?>
+                <?php $image_url = wp_get_attachment_image_src($image_id, 'thumbnail'); ?>
+                <div class="gallery-image">
+                    <img src="<?php echo esc_url($image_url[0]); ?>" alt="Gallery Image">
+                    <div class="gallery-actions">
+                        <a href="#" class="modify-image" data-image-id="<?php echo esc_attr($image_id); ?>">Modify</a>
+                        <a href="#" class="delete-image" data-image-id="<?php echo esc_attr($image_id); ?>">Delete</a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
     </div>
+
     <script>
 
-jQuery(document).ready(function($) {
-    $('#auction_gallery_upload_btn').click(function(e) {
-        e.preventDefault();
+        jQuery(document).ready(function($) {
+            $('#auction_gallery_upload_btn').click(function(e) {
+            e.preventDefault();
 
-        // Define and open the WordPress media uploader
-        var imageUploader = wp.media({
-            title: 'Upload Images for Auction Gallery',
-            button: {
-                text: 'Add to Gallery'
-            },
-            multiple: true
+            // Define and open the WordPress media uploader
+            var imageUploader = wp.media({
+                title: 'Upload Images for Auction Gallery',
+                button: {
+                    text: 'Add to Gallery'
+                },
+                multiple: true
+            });
+
+            // Handle selected images
+            imageUploader.on('select', function() {
+                var attachment = imageUploader.state().get('selection').toJSON();
+                var imageIDs = [];
+
+                // Extract image IDs and build image preview HTML
+                for (var i = 0; i < attachment.length; i++) {
+                    imageIDs.push(attachment[i].id);
+                    $('#auction_gallery_preview').append('<img src="' + attachment[i].url + '" alt="' + attachment[i].alt + '">');
+                }
+
+                // Update the hidden input field with image IDs
+                $('#auction_gallery_images').val(imageIDs.join(','));
+            });
+
+            // Open the media uploader
+            imageUploader.open();
         });
 
-        // Handle selected images
-        imageUploader.on('select', function() {
-            var attachment = imageUploader.state().get('selection').toJSON();
-            var imageIDs = [];
+            // Modify image action
+            $('#auction_gallery_preview').on('click', '.modify-image', function(e) {
+                e.preventDefault();
+                var imageId = $(this).data('image-id');
+                // Add your code to handle modify action (e.g., open modal for editing)
+            });
 
-            // Extract image IDs and build image preview HTML
-            for (var i = 0; i < attachment.length; i++) {
-                imageIDs.push(attachment[i].id);
-                $('#auction_gallery_preview').append('<img src="' + attachment[i].url + '" alt="' + attachment[i].alt + '">');
-            }
-
-            // Update the hidden input field with image IDs
-            $('#auction_gallery_images').val(imageIDs.join(','));
+            // Delete image action
+            $('#auction_gallery_preview').on('click', '.delete-image', function(e) {
+                e.preventDefault();
+                var imageId = $(this).data('image-id');
+                var galleryImages = $('#auction_gallery_images').val().split(',');
+                var updatedGalleryImages = galleryImages.filter(function(id) {
+                    return id !== imageId.toString();
+                });
+                $('#auction_gallery_images').val(updatedGalleryImages.join(','));
+                $(this).closest('.gallery-image').remove(); // Remove the image preview from DOM
+            });
         });
-
-        // Open the media uploader
-        imageUploader.open();
-    });
-});
 
 
     </script>
+
     <?php
 }
+
 
 // Save image gallery custom field data
 add_action('save_post', 'auction_save_image_gallery_field');

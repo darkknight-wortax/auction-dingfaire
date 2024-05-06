@@ -3,7 +3,7 @@
 Plugin Name: Auction - Dingfaire
 Description: Custom plugin for managing auctions.
 Version: 1.0
-Author: Darkknight
+Author: Wortax - Darkknight
 */
 
 // Include necessary files
