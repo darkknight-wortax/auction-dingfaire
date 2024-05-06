@@ -10,6 +10,7 @@ if (have_posts()) :
             <h1><?php the_title(); ?></h1>
             <div class="entry-content">
                 Darkknight
+                <?php the_post_thumbnail(); ?>
                 <?php the_content(); ?>
             </div>
         </div>
