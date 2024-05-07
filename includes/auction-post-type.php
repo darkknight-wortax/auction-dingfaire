@@ -111,16 +111,22 @@ function auction_render_image_gallery_field($post) {
         <input type="button" id="auction_gallery_upload_btn" class="button" value="Upload Images">
         <input type="hidden" id="auction_gallery_images" name="auction_gallery_images" value="<?php echo esc_attr($gallery_images); ?>">
         <div id="auction_gallery_preview">
-            <?php foreach ($image_ids as $image_id) : ?>
-                <?php $image_url = wp_get_attachment_image_src($image_id, 'thumbnail'); ?>
+            <?php 
+            // print_r($image_ids);
+            foreach ($image_ids as $image_id) : ?>
+                <?php 
+                if($image_id){
+                $image_url = wp_get_attachment_image_src($image_id, 'thumbnail'); ?>
                 <div class="gallery-image">
                     <img src="<?php echo esc_url($image_url[0]); ?>" alt="Gallery Image">
                     <div class="gallery-actions">
-                        <a href="#" class="modify-image" data-image-id="<?php echo esc_attr($image_id); ?>">Modify</a>
+                        <!-- <a href="#" class="modify-image" data-image-id="<?php echo esc_attr($image_id); ?>">Modify</a> -->
                         <a href="#" class="delete-image" data-image-id="<?php echo esc_attr($image_id); ?>">Delete</a>
                     </div>
                 </div>
-            <?php endforeach; ?>
+            <?php
+                } 
+            endforeach; ?>
         </div>
     </div>
 
@@ -143,11 +149,11 @@ function auction_render_image_gallery_field($post) {
             imageUploader.on('select', function() {
                 var attachment = imageUploader.state().get('selection').toJSON();
                 var imageIDs = [];
-
+                console.log(attachment);
                 // Extract image IDs and build image preview HTML
                 for (var i = 0; i < attachment.length; i++) {
                     imageIDs.push(attachment[i].id);
-                    $('#auction_gallery_preview').append('<img src="' + attachment[i].url + '" alt="' + attachment[i].alt + '">');
+                    $('#auction_gallery_preview').append('<div class="gallery-image"><img src="' + attachment[i].sizes.thumbnail.url + '" alt="' + attachment[i].alt + '"><div class="gallery-actions"><a href="#" class="delete-image" data-image-id="'+attachment[i].id+'">Delete</a></div></div>');
                 }
 
                 // Update the hidden input field with image IDs
