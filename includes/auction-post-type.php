@@ -118,7 +118,7 @@ function auction_render_image_gallery_field($post) {
                 if($image_id){
                 $image_url = wp_get_attachment_image_src($image_id, 'thumbnail'); ?>
                 <div class="gallery-image">
-                    <img src="<?php echo esc_url($image_url[0]); ?>" alt="Gallery Image">
+                    <img style="max-width:150px" src="<?php echo esc_url($image_url[0]); ?>" alt="Gallery Image">
                     <div class="gallery-actions">
                         <!-- <a href="#" class="modify-image" data-image-id="<?php echo esc_attr($image_id); ?>">Modify</a> -->
                         <a href="#" class="delete-image" data-image-id="<?php echo esc_attr($image_id); ?>">Delete</a>
@@ -153,7 +153,7 @@ function auction_render_image_gallery_field($post) {
                 // Extract image IDs and build image preview HTML
                 for (var i = 0; i < attachment.length; i++) {
                     imageIDs.push(attachment[i].id);
-                    $('#auction_gallery_preview').append('<div class="gallery-image"><img src="' + attachment[i].sizes.thumbnail.url + '" alt="' + attachment[i].alt + '"><div class="gallery-actions"><a href="#" class="delete-image" data-image-id="'+attachment[i].id+'">Delete</a></div></div>');
+                    $('#auction_gallery_preview').append('<div class="gallery-image"><img style="max-width:150px"  src="' + attachment[i].url + '" alt="' + attachment[i].alt + '"><div class="gallery-actions"><a href="#" class="delete-image" data-image-id="'+attachment[i].id+'">Delete</a></div></div>');
                 }
 
                 // Update the hidden input field with image IDs
