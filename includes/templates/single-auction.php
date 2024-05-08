@@ -17,13 +17,29 @@ if (have_posts()) :
 
                         <!-- Column 1 -->
                         <div class="col_1_dk">
-                            <?php the_post_thumbnail(); ?>
+                            <?php the_post_thumbnail(); 
+                                $gallery_images = get_post_meta(get_the_ID(), 'auction_gallery_images', true);
+                                $image_ids = explode(',', $gallery_images);
+                                
+                                    foreach ($image_ids as $image_id){
+                                        $image_url = wp_get_attachment_image_src($image_id, 'full');
+                                        if($image_id){
+                                            ?><img src="<?php echo esc_url($image_url[0]); ?>" alt="Gallery Image"><?php
+                                        }
+                                    }
+                            ?>
                         </div>
                         <!-- Column 1 End-->
 
                         <!-- Column 2 -->
                         <div class="col_2_dk">
-                            <h1><?php the_title(); ?></h1>
+                            <h2><?php the_title(); ?></h2>
+                            <?php 
+                                echo get_post_meta($post->ID, 'initial_cost', true).'<br>';
+                                echo get_post_meta($post->ID, 'start_datetime', true).'<br>';
+                                echo get_post_meta($post->ID, 'end_datetime', true).'<br>';
+                                echo get_post_meta($post->ID, 'location', true).'<br>';
+                            ?>
                             <?php the_content(); ?>
                         </div>
                         <!-- Column 2 End -->
