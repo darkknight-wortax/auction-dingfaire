@@ -1,4 +1,6 @@
 <?php
+
+
 // Add common functions used throughout the plugin here
 add_filter('template_include', 'auction_custom_template');
 function auction_custom_template($template) {

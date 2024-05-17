@@ -5,13 +5,15 @@ get_header();
 if (have_posts()):
     while (have_posts()):
         the_post();
-        $plugin_path = plugins_url() . '/auction-dingfaire-master';
+        $plugin_path = plugin_dir_url( __FILE__ ); 
+
+        // print_r($plugin_path);
 
         ?>
 
-        <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '/css/slick.min.css'); ?>">
-        <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '/css/slick-theme.min.css'); ?>">
-        <script src="<?php echo esc_url($plugin_path . '/js/slick.min.js'); ?>"></script>
+        <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '../../css/slick.min.css'); ?>">
+        <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '../../css/slick-theme.min.css'); ?>">
+        <script src="<?php echo esc_url($plugin_path . '../../js/slick.min.js'); ?>"></script>
 
         <div id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
