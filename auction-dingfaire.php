@@ -23,6 +23,8 @@ function auction_dingfaire_init() {
 }
 // Activation hook
 register_activation_hook(__FILE__, 'auction_create_submit_auction_page');
+// Hook the table creation function to the plugin activation
+register_activation_hook(__FILE__, 'create_auction_bidding_table');
 
 // Enqueue CSS and JS files
 add_action('wp_enqueue_scripts', 'auction_enqueue_scripts');
@@ -32,6 +34,11 @@ function auction_enqueue_scripts() {
 
     // Enqueue JS file with jQuery dependency
     wp_enqueue_script('auction-scripts', plugin_dir_url(__FILE__) . 'js/auction-scripts.js', array('jquery'), null, true);
+    // Localize script to pass AJAX URL and nonce
+    wp_localize_script('auction-scripts', 'dkAuctionSubmissionAjax', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce'    => wp_create_nonce('bidding_form_nonce'),
+    ));
 }
 
 // Add admin menu page for plugin options

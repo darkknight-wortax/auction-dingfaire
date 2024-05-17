@@ -7,7 +7,30 @@ if (have_posts()) :
         the_post();
         $plugin_path = plugin_dir_url(__FILE__);
 
-        // print_r($plugin_path);
+        $post_id = get_the_ID();
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'auction_bidding';
+
+        $current_currency = get_option('auction_currency_general_dk');
+
+        $last_bid = $wpdb->get_results("SELECT * FROM $table_name WHERE post_id=$post_id ORDER BY ID DESC LIMIT 1")[0]->bidding_amount;
+
+
+
+        $start_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'start_datetime', true)));
+        $end_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'end_datetime', true)));
+        $initial_cost = get_post_meta($post_id, 'initial_cost', true);
+        $current_cost = $initial_cost;
+
+        if ($last_bid) {
+            $current_cost = $last_bid;
+        }
+
+        // Default Bid increment from admin
+        $default_bid_increment = 5;
+        if (get_option('bid_increment')) {
+            $default_bid_increment = get_option('bid_increment');
+        }
 
 ?>
 
@@ -31,7 +54,7 @@ if (have_posts()) :
 
                             // Output the gallery images
                             $gallery_images = '';
-                            $gallery_images_meta = get_post_meta(get_the_ID(), 'auction_gallery_images', true);
+                            $gallery_images_meta = get_post_meta($post_id, 'auction_gallery_images', true);
                             $gallery_image_ids = explode(',', $gallery_images_meta);
                             foreach ($gallery_image_ids as $image_id) {
                                 $image_url = wp_get_attachment_image_src($image_id, 'full');
@@ -40,12 +63,12 @@ if (have_posts()) :
                                 }
                             }
                             ?>
-                            <div class="slider-for">
+                            <div class="slider-for-single-auction">
                                 <?php echo $featured_image; ?>
                                 <?php echo $gallery_images; ?>
                             </div>
 
-                            <div class="slider-nav">
+                            <div class="slider-nav-single-auction">
                                 <?php echo $featured_image; ?>
                                 <?php echo $gallery_images; ?>
                             </div>
@@ -56,15 +79,25 @@ if (have_posts()) :
                         <!-- Column 2 -->
                         <div class="col_2_dk">
                             <h2><?php the_title(); ?></h2>
-                            <div id="dk_timer_auction" class="timer_area"></div>
-                            <?php
-                            $start_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post->ID, 'start_datetime', true)));
-                            $end_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post->ID, 'end_datetime', true)));
-                            
-                            $initial_cost = get_post_meta($post->ID, 'initial_cost', true) ;
+                            <p>Initial Cost: <?php echo $current_currency.$initial_cost; ?></p>
+                            <?php if ($last_bid) { ?>
+                                <p>Latest Bid: <span id="latest_bid"><?php echo $current_currency.$last_bid; ?></span></p>
+                            <?php } ?>
 
-                            echo 'Location: '.get_post_meta($post->ID, 'location', true) . '<br>';
-                            ?>
+                            <div id="dk_timer_auction" class="timer_area"></div>
+                            <!-- <label><input type="number" min="<?php echo $current_cost ?>" step="<?php echo $default_bid_increment ?>" value="<?php echo $current_cost ?>" /></label> -->
+                            <form id="bid_form">
+                                <div class="min-add-button">
+                                    <div class="input-group_audf">
+                                        <a href="#" class="input-group-addon minus_audf increment_audf">-</a>
+                                        <input type="text" class="form-control" id="auction_cost" value="<?php echo $current_cost ?>" readonly>
+                                        <a href="#" class="input-group-addon plus_audf increment_audf">+</a>
+                                    </div>
+                                </div>
+                                <input type="submit" value="Bid" id="submit_bid" />
+                            </form>
+                            <div id="bidding_response"></div>
+                            <p><?php echo 'Location: ' . get_post_meta($post->ID, 'location', true); ?></p>
                             <?php the_content(); ?>
                         </div>
                         <!-- Column 2 End -->
@@ -83,17 +116,17 @@ endif;
 
 ?>
 <script>
-    jQuery('.slider-for').slick({
+    jQuery('.slider-for-single-auction').slick({
         slidesToShow: 1,
         slidesToScroll: 1,
         arrows: false,
         fade: true,
-        asNavFor: '.slider-nav'
+        asNavFor: '.slider-nav-single-auction'
     });
-    jQuery('.slider-nav').slick({
+    jQuery('.slider-nav-single-auction').slick({
         slidesToShow: 3,
         slidesToScroll: 1,
-        asNavFor: '.slider-for',
+        asNavFor: '.slider-for-single-auction',
         dots: true,
         centerMode: true,
         focusOnSelect: true
@@ -106,13 +139,23 @@ endif;
         const targetDate = new Date("<?php echo $end_datetime ?>");
 
         // Get the current date and time (in the user's timezone)
-        // const now = new Date("<?php echo $start_datetime ?>");
+        const startDatetime = new Date("<?php echo $start_datetime ?>");
 
         const now = new Date();
 
         // Calculate the remaining time
         const timeDifference = targetDate - now;
         // console.log(timeDifference);
+
+        const check_start = now - startDatetime;
+        if (check_start <= 0) {
+            let elem_c = document.getElementById("dk_timer_auction");
+            elem_c.innerHTML = "Auction will start on: <?php echo $start_datetime ?>";
+            // elem_c.parentNode.closest('section').remove();
+            // Perform any action here when the countdown reaches zero
+            // For example: redirect to another page, display a message, etc.
+            return;
+        }
 
         // If the time difference is less than or equal to 0, the countdown has reached zero
         if (timeDifference <= 0) {
@@ -148,113 +191,23 @@ endif;
 
     // Call the function initially to display the countdown immediately
     updateCountdown();
+
+
+    //Step Buttons
+    jQuery(function($) {
+        $('.increment_audf').click(function() {
+            var valueElement = $('#' + $(this).siblings('input').attr('id'));
+
+            if ($(this).hasClass('plus_audf')) {
+                valueElement.val(Math.max(parseInt(valueElement.val()) + <?php echo $default_bid_increment ?>));
+            } else if (valueElement.val() > <?php echo $current_cost; ?>) { // Stops the value going into negatives
+                valueElement.val(Math.max(parseInt(valueElement.val()) - <?php echo $default_bid_increment ?>));
+            }
+
+            return false;
+        });
+    });
 </script>
-<style>
-    #section_1 {}
 
-    .section_1_auction {
-        padding: 50px 10px;
-    }
-
-    .section_1_auction img {
-        max-width: 100%;
-        height: auto;
-    }
-
-    .sec_1_row_1 {
-        max-width: 1200px;
-        margin: auto;
-        display: flex;
-        flex-wrap: wrap;
-        flex-direction: row;
-    }
-
-    .col_1_dk {
-        width: calc(50% - 20px);
-        padding: 10px;
-        display: block;
-    }
-
-    .col_2_dk {
-        width: calc(50% - 20px);
-        padding: 10px;
-    }
-
-    /* Timer Style Start */
-    div.timer_area {
-        background-image: linear-gradient(rgb(0 0 0) 0%, rgb(129 129 129) 100%);
-        border-radius: 5px;
-        display: flex;
-        flex-wrap: wrap;
-        color: #fff;
-        font-family: Inter;
-        font-size: 40px;
-        font-weight: 700;
-        line-height: 48px;
-        letter-spacing: 0em;
-        text-align: center;
-        align-content: center;
-        justify-content: center;
-        align-items: flex-end;
-        padding: 10px;
-        max-width: 340px;
-        /* margin: auto; */
-        margin-bottom: 10px;
-    }
-
-    .itm_dk {
-        display: flex;
-        flex-wrap: wrap;
-        flex-direction: column;
-        align-content: center;
-        margin: 0 5px;
-        width: 50px;
-        transform: translatey(3px)
-    }
-
-    .itm_prefix_dk {
-        font-size: 16px;
-        line-height: 19px;
-        text-transform: uppercase;
-        text-align: center;
-    }
-
-    .day_dk.itm_dk {
-        margin-right: 10px;
-    }
-
-    .discount_info_wrapper_dk h3 {
-        color: #fff;
-        font-family: Inter;
-        font-size: 24px;
-        font-weight: 800;
-        line-height: 41px;
-        letter-spacing: 0em;
-        text-align: center;
-        margin: 15px 0
-    }
-
-    .discount_info_wrapper_dk p {
-        max-width: 215px;
-        margin: auto;
-        padding: 10px;
-        background: #EF5726;
-        font-family: Inter;
-        font-size: 20px;
-        font-weight: 700;
-        line-height: 34px;
-        letter-spacing: 0em;
-        text-align: center;
-        border-radius: 5px;
-        color: #fff;
-    }
-
-    .discount_info_wrapper_dk p span {
-        font-size: 32px;
-        margin: 0 5px
-    }
-
-    /* Timer Style End */
-</style>
 <?php
 get_footer();

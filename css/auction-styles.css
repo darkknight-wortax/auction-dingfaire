@@ -1,12 +1,139 @@
-/* CSS styles for Auction plugin */
-.auction-container {
-    border: 1px solid #ccc;
+#section_1 {}
+
+.section_1_auction {
+    padding: 50px 10px;
+}
+
+.section_1_auction img {
+    max-width: 100%;
+    height: auto;
+}
+
+.sec_1_row_1 {
+    max-width: 1200px;
+    margin: auto;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+.col_1_dk {
+    width: calc(50% - 20px);
+    padding: 10px;
+    display: block;
+}
+
+.col_2_dk {
+    width: calc(50% - 20px);
     padding: 10px;
 }
 
-.auction-title {
-    font-size: 20px;
-    font-weight: bold;
+/* Timer Style Start */
+div.timer_area {
+    background-image: linear-gradient(rgb(0 0 0) 0%, rgb(129 129 129) 100%);
+    border-radius: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    color: #fff;
+    font-family: Inter;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 48px;
+    letter-spacing: 0em;
+    text-align: center;
+    align-content: center;
+    justify-content: center;
+    align-items: flex-end;
+    padding: 10px;
+    max-width: 340px;
+    /* margin: auto; */
+    margin-bottom: 10px;
 }
 
-/* Add more styles as needed */
+.itm_dk {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-content: center;
+    margin: 0 5px;
+    width: 50px;
+    transform: translatey(3px)
+}
+
+.itm_prefix_dk {
+    font-size: 16px;
+    line-height: 19px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.day_dk.itm_dk {
+    margin-right: 10px;
+}
+
+.discount_info_wrapper_dk h3 {
+    color: #fff;
+    font-family: Inter;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 41px;
+    letter-spacing: 0em;
+    text-align: center;
+    margin: 15px 0
+}
+
+.discount_info_wrapper_dk p {
+    max-width: 215px;
+    margin: auto;
+    padding: 10px;
+    background: #EF5726;
+    font-family: Inter;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 34px;
+    letter-spacing: 0em;
+    text-align: center;
+    border-radius: 5px;
+    color: #fff;
+}
+
+.discount_info_wrapper_dk p span {
+    font-size: 32px;
+    margin: 0 5px
+}
+
+/* Timer Style End */
+.input-group_audf{
+    display: flex;
+}
+.input-group_audf a {
+    background: #E5E5E5;
+    color: #FFF;
+    padding: 12px 20px;
+    text-decoration: none;
+    display: block;
+}
+
+.input-group_audf a:hover {
+    background: #000000
+}
+
+.input-group_audf input {
+    text-align: center;
+    font-weight: 700;
+    padding: 0 12px;
+    color: #000000;
+    max-width:80px;
+}
+input#submit_bid {
+    padding: 15px;
+    margin-top: 10px;
+    width: 100%;
+    max-width: 205px;
+    background: #000;
+    color: #fff;
+    border: 0;
+    border-radius: 5px;
+    text-transform: uppercase;
+    cursor: pointer;
+}
