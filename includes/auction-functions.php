@@ -111,7 +111,7 @@ function auction_template_include($template) {
         return plugin_dir_path(__FILE__) . 'templates/my-auctions/submit-auction-template.php';
     }
     if (strpos($url,'my-auctions') !== false) {
-        return plugin_dir_path(__FILE__) . 'templates/page-my-auctions.php';
+        return plugin_dir_path(__FILE__) . 'templates/page-my-auctions.php'; 
     }
 
     return $template;
