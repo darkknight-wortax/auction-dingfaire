@@ -2,8 +2,8 @@
 // Template Name: Auction Single
 get_header();
 
-if (have_posts()) :
-    while (have_posts()) :
+if (have_posts()):
+    while (have_posts()):
         the_post();
         $plugin_path = plugin_dir_url(__FILE__);
 
@@ -13,12 +13,19 @@ if (have_posts()) :
 
         $current_currency = get_option('auction_currency_general_dk');
 
-        $last_bid = $wpdb->get_results("SELECT * FROM $table_name WHERE post_id=$post_id ORDER BY ID DESC LIMIT 1")[0]->bidding_amount;
+        // $last_bid = $wpdb->get_results("SELECT * FROM $table_name WHERE post_id=$post_id ORDER BY ID DESC LIMIT 1")[0]->bidding_amount;
+        // Retrieve the last bid
+        $last_bid_query = $wpdb->get_results("SELECT * FROM $table_name WHERE post_id=$post_id ORDER BY ID DESC LIMIT 1");
+        $last_bid = null;
+        if (!empty($last_bid_query)) {
+            $last_bid = $last_bid_query[0]->bidding_amount;
+        }
 
 
 
         $start_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'start_datetime', true)));
         $end_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'end_datetime', true)));
+        $location = get_post_meta($post->ID, 'location', true);
         $initial_cost = get_post_meta($post_id, 'initial_cost', true);
         $current_cost = $initial_cost;
 
@@ -32,11 +39,11 @@ if (have_posts()) :
             $default_bid_increment = get_option('bid_increment');
         }
 
-?>
+        ?>
 
-        <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '../../css/slick.min.css'); ?>">
-        <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '../../css/slick-theme.min.css'); ?>">
-        <script src="<?php echo esc_url($plugin_path . '../../js/slick.min.js'); ?>"></script>
+        <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '../../assets/css/slick.min.css'); ?>">
+        <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '../../assets/css/slick-theme.min.css'); ?>">
+        <script src="<?php echo esc_url($plugin_path . '../../assets/js/slick.min.js'); ?>"></script>
 
         <div id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
@@ -50,7 +57,13 @@ if (have_posts()) :
                         <div class="col_1_dk">
                             <?php
                             // Output the featured image
-                            $featured_image = '<div><img src="' . get_the_post_thumbnail_url(null, 'full') . '" alt="Featured Image" class="slick-image"></div>';
+                            if(get_the_post_thumbnail_url()){
+                                $featured_image = '<div><img src="' . get_the_post_thumbnail_url(null, 'full') . '" alt="Featured Image" class=""></div>';
+                            }
+                            else{
+                                $featured_image = '<div><img src="'.esc_url($plugin_path . '../../assets/images/thumbnail-auction.png').'" class=""></div>';
+                            }
+                            
 
                             // Output the gallery images
                             $gallery_images = '';
@@ -68,10 +81,14 @@ if (have_posts()) :
                                 <?php echo $gallery_images; ?>
                             </div>
 
-                            <div class="slider-nav-single-auction">
-                                <?php echo $featured_image; ?>
-                                <?php echo $gallery_images; ?>
-                            </div>
+                            <?php if($gallery_image_ids[0]){
+                                //print_r($gallery_image_ids[0]);
+                                ?>
+                                <div class="slider-nav-single-auction">
+                                    <?php echo $featured_image; ?>
+                                    <?php echo $gallery_images; ?>
+                                </div>
+                            <?php }?>
 
                         </div>
                         <!-- Column 1 End-->
@@ -79,25 +96,35 @@ if (have_posts()) :
                         <!-- Column 2 -->
                         <div class="col_2_dk">
                             <h2><?php the_title(); ?></h2>
-                            <p>Initial Cost: <?php echo $current_currency.$initial_cost; ?></p>
-                            <?php if ($last_bid) { ?>
-                                <p>Latest Bid: <span id="latest_bid"><?php echo $current_currency.$last_bid; ?></span></p>
+                            <?php if (!empty($initial_cost)) { ?>
+                                <p>Initial Cost: <?php echo $current_currency . $initial_cost; ?></p>
                             <?php } ?>
-
-                            <div id="dk_timer_auction" class="timer_area"></div>
+                            <?php if ($last_bid) { ?>
+                                <p>Latest Bid: <span id="latest_bid"><?php echo $current_currency . $last_bid; ?></span></p>
+                            <?php } ?>
+                            <?php if (!empty($initial_cost)) { ?>
+                            <div id="dk_timer_auction"></div>
+                            <?php } ?>
                             <!-- <label><input type="number" min="<?php echo $current_cost ?>" step="<?php echo $default_bid_increment ?>" value="<?php echo $current_cost ?>" /></label> -->
                             <form id="bid_form">
+                                <?php if (!empty($initial_cost)) { ?>
                                 <div class="min-add-button">
                                     <div class="input-group_audf">
                                         <a href="#" class="input-group-addon minus_audf increment_audf">-</a>
-                                        <input type="text" class="form-control" id="auction_cost" value="<?php echo $current_cost ?>" readonly>
+                                        <input type="text" class="form-control" id="auction_cost"
+                                            value="<?php echo $current_cost ?>" readonly>
                                         <a href="#" class="input-group-addon plus_audf increment_audf">+</a>
                                     </div>
                                 </div>
-                                <input type="submit" value="Bid" id="submit_bid" />
+                                <?php } ?>
+                                <?php if (!empty($initial_cost) && !empty($end_datetime)) { ?>
+                                    <input type="submit" value="Bid" id="submit_bid" />
+                                <?php } ?>
                             </form>
                             <div id="bidding_response"></div>
-                            <p><?php echo 'Location: ' . get_post_meta($post->ID, 'location', true); ?></p>
+                            <?php if (!empty($location)) { ?>
+                                <p><?php echo 'Location: ' . $location; ?></p>
+                            <?php } ?>
                             <?php the_content(); ?>
                         </div>
                         <!-- Column 2 End -->
@@ -110,7 +137,7 @@ if (have_posts()) :
 
             </div>
         </div>
-<?php
+        <?php
     endwhile;
 endif;
 
@@ -150,7 +177,7 @@ endif;
         const check_start = now - startDatetime;
         if (check_start <= 0) {
             let elem_c = document.getElementById("dk_timer_auction");
-            elem_c.innerHTML = "Auction will start on: <?php echo $start_datetime ?>";
+            elem_c.innerHTML = "<div class='aunction-start aunction-dates'>Auction will start on: <?php echo $start_datetime ?></div>";
             // elem_c.parentNode.closest('section').remove();
             // Perform any action here when the countdown reaches zero
             // For example: redirect to another page, display a message, etc.
@@ -160,7 +187,7 @@ endif;
         // If the time difference is less than or equal to 0, the countdown has reached zero
         if (timeDifference <= 0) {
             let elem_c = document.getElementById("dk_timer_auction");
-            elem_c.innerHTML = "Auction has been ended";
+            elem_c.innerHTML = "<div class='aunction-end aunction-dates'>Auction has been ended";
             // elem_c.parentNode.closest('section').remove();
             // Perform any action here when the countdown reaches zero
             // For example: redirect to another page, display a message, etc.
@@ -179,11 +206,11 @@ endif;
         const secondsString = seconds < 10 ? "0" + seconds : seconds;
 
         // Display the countdown in the specified element
-        let day_display = '';
+        let day_display = "<div class='timer_area'>";
         if (days > 0) {
-            day_display = "<div class='itm_dk day_dk'><span class='itm_prefix_dk'>Day</span><span class='itm_value_dk'>" + daysString + "</span></div> ";
+            day_display = "<div class='timer_area'><div class='itm_dk day_dk'><span class='itm_prefix_dk'>Day</span><span class='itm_value_dk'>" + daysString + "</span></div> ";
         }
-        document.getElementById("dk_timer_auction").innerHTML = day_display + "<div class='itm_dk'><span class='itm_prefix_dk'>Hr</span><span class='itm_value_dk'>" + hoursString + "</span></div>:<div class='itm_dk'><span class='itm_prefix_dk'>Min</span><span class='itm_value_dk'>" + minutesString + "</span></div>:<div class='itm_dk'><span class='itm_prefix_dk'>Sec</span><span class='itm_value_dk'>" + secondsString + "</span></div>";
+        document.getElementById("dk_timer_auction").innerHTML = day_display + "<div class='itm_dk'><span class='itm_prefix_dk'>Hr</span><span class='itm_value_dk'>" + hoursString + "</span></div>:<div class='itm_dk'><span class='itm_prefix_dk'>Min</span><span class='itm_value_dk'>" + minutesString + "</span></div>:<div class='itm_dk'><span class='itm_prefix_dk'>Sec</span><span class='itm_value_dk'>" + secondsString + "</span></div></div>";
     }
 
     // Call the updateCountdown function every second to keep the countdown updated
@@ -194,8 +221,8 @@ endif;
 
 
     //Step Buttons
-    jQuery(function($) {
-        $('.increment_audf').click(function() {
+    jQuery(function ($) {
+        $('.increment_audf').click(function () {
             var valueElement = $('#' + $(this).siblings('input').attr('id'));
 
             if ($(this).hasClass('plus_audf')) {

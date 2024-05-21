@@ -30,10 +30,10 @@ register_activation_hook(__FILE__, 'create_auction_bidding_table');
 add_action('wp_enqueue_scripts', 'auction_enqueue_scripts');
 function auction_enqueue_scripts() {
     // Enqueue CSS file
-    wp_enqueue_style('auction-styles', plugin_dir_url(__FILE__) . 'css/auction-styles.css');
+    wp_enqueue_style('auction-styles', plugin_dir_url(__FILE__) . 'assets/css/auction-styles.css');
 
     // Enqueue JS file with jQuery dependency
-    wp_enqueue_script('auction-scripts', plugin_dir_url(__FILE__) . 'js/auction-scripts.js', array('jquery'), null, true);
+    wp_enqueue_script('auction-scripts', plugin_dir_url(__FILE__) . 'assets/js/auction-scripts.js', array('jquery'), null, true);
     // Localize script to pass AJAX URL and nonce
     wp_localize_script('auction-scripts', 'dkAuctionSubmissionAjax', array(
         'ajax_url' => admin_url('admin-ajax.php'),
