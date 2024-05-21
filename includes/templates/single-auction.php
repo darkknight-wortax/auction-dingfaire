@@ -6,7 +6,7 @@ if (have_posts()):
     while (have_posts()):
         the_post();
         $plugin_path = plugin_dir_url(__FILE__);
-
+        
         $post_id = get_the_ID();
         global $wpdb;
         $table_name = $wpdb->prefix . 'auction_bidding';

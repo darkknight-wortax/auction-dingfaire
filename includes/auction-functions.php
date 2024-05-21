@@ -28,7 +28,7 @@ function auction_theme_override($template)
 }
 
 
-// Function to create the table
+// Function to create the table bidding if it doesnot exist in database
 function create_auction_bidding_table()
 {
     global $wpdb;
@@ -54,8 +54,84 @@ function create_auction_bidding_table()
 }
 
 
+// Create "My Auctions" page on plugin activation
+function auction_create_my_auctions_page() {
+    $page_title = 'My Auctions';
+    $page_slug = 'my-auctions';
+    $page_content = '[My_Account_Auctions]';
 
-//Function for Auction Ajax
+    // Check if the page exists
+    $existing_page = get_page_by_path($page_slug);
+
+    if (!$existing_page) {
+        // Page doesn't exist, create it
+        $page_data = array(
+            'post_title' => $page_title,
+            'post_name' => $page_slug,
+            'post_content' => $page_content,
+            'post_status' => 'publish',
+            'post_type' => 'page'
+        );
+
+        // Insert the page into the database
+        wp_insert_post($page_data);
+    }
+}
+
+// Flush rewrite rules on plugin activation
+function auction_flush_rewrite_rules() {
+    auction_create_my_auctions_page();
+    auction_add_rewrite_rules();
+    flush_rewrite_rules();
+}
+
+
+// Add rewrite rules for sub-URLs
+function auction_add_rewrite_rules() {
+    add_rewrite_rule('^my-auctions/my-bids/?', 'index.php?auction_page=my-bids', 'top');
+    add_rewrite_rule('^my-auctions/submit-auction/?', 'index.php?auction_page=submit-auction', 'top');
+}
+add_action('init', 'auction_add_rewrite_rules');
+
+// Add query vars
+function auction_add_query_vars($query_vars) {
+    $query_vars[] = 'auction_page';
+    return $query_vars;
+}
+add_filter('query_vars', 'auction_add_query_vars');
+
+// Load custom templates
+function auction_template_include($template) {
+    $auction_page = get_query_var('auction_page');
+    $url = $_SERVER['REQUEST_URI'];
+    if ($auction_page == 'my-bids') {
+        // print_r($url);
+        return plugin_dir_path(__FILE__) . 'templates/my-auctions/my-bids-template.php';
+    } elseif ($auction_page == 'submit-auction') {
+        return plugin_dir_path(__FILE__) . 'templates/my-auctions/submit-auction-template.php';
+    }
+    if (strpos($url,'my-auctions') !== false) {
+        return plugin_dir_path(__FILE__) . 'templates/page-my-auctions.php';
+    }
+
+    return $template;
+}
+add_filter('template_include', 'auction_template_include');
+
+// Register shortcodes (if needed)
+// function auction_my_account_auctions_shortcode() {
+//     // Placeholder content for My Auctions account page
+//     ob_start();
+//     echo '<h2>My Auctions</h2>';
+//     echo '<p>This is the My Auctions account page.</p>';
+//     return ob_get_clean();
+// }
+// add_shortcode('My_Account_Auctions', 'auction_my_account_auctions_shortcode');
+
+
+
+
+//Function for Auction Bidding Ajax
 add_action('wp_ajax_submit_bidding_form', 'handle_bidding_form_submission');
 add_action('wp_ajax_nopriv_submit_bidding_form', 'handle_bidding_form_submission');
 function handle_bidding_form_submission()
