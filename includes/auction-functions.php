@@ -70,18 +70,18 @@ function handle_bidding_form_submission()
     }
     $url     = wp_get_referer();
     $post_id = url_to_postid($url);
-    $current_time = time();
-    $start_datetime = strtotime(get_post_meta($post_id, 'start_datetime', true));
-    $end_datetime = strtotime(get_post_meta($post_id, 'end_datetime', true));
+    $start_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'start_datetime', true)));
+    $end_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'end_datetime', true)));
+    $current_datetime = current_datetime()->format('Y-m-d H:i:s');
 
-    if ($current_time >= $start_datetime && $current_time <= $end_datetime) {
+    if ($current_datetime >= $start_datetime && $current_datetime <= $end_datetime) {
         // Get the form field value
         if (isset($_POST['bidding_cost'])) {
             global $wpdb;
             $current_currency = get_option('auction_currency_general_dk');
 
-            $start_datetime_auction = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'start_datetime', true)));
-            $end_datetime_auction = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'end_datetime', true)));
+            // $start_datetime_auction = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'start_datetime', true)));
+            // $end_datetime_auction = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'end_datetime', true)));
 
 
             $bidding_cost_value = sanitize_text_field($_POST['bidding_cost']);

@@ -25,7 +25,9 @@ if (have_posts()):
 
         $start_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'start_datetime', true)));
         $end_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'end_datetime', true)));
-        $current_datetime = date("Y-m-d H:i:s");
+        // $current_datetime = date("Y-m-d H:i:s");
+        $current_datetime = current_datetime()->format('Y-m-d H:i:s');
+        // print_r($current_date_time);
 
         $location = get_post_meta($post->ID, 'location', true);
         $initial_cost = get_post_meta($post_id, 'initial_cost', true);
@@ -108,8 +110,8 @@ if (have_posts()):
                             <div id="dk_timer_auction"></div>
                             <?php } ?>
                             <!-- <label><input type="number" min="<?php echo $current_cost ?>" step="<?php echo $default_bid_increment ?>" value="<?php echo $current_cost ?>" /></label> -->
-                            <?php if ($current_datetime >= $start_datetime && $current_datetime <= $end_datetime) {?>
-                            <form id="bid_form">
+                            
+                            <form id="bid_form" style="<?php if ($current_datetime >= $start_datetime && $current_datetime <= $end_datetime) {echo 'display:none';}?>">
                                 <?php if (!empty($initial_cost)) { ?>
                                 <div class="min-add-button">
                                     <div class="input-group_audf">
@@ -124,7 +126,6 @@ if (have_posts()):
                                     <input type="submit" value="Bid" id="submit_bid" />
                                 <?php } ?>
                             </form>
-                            <?php }?>
                             <div id="bidding_response"></div>
                             <?php if (!empty($location)) { ?>
                                 <p><?php echo 'Location: ' . $location; ?></p>
@@ -163,17 +164,17 @@ endif;
         focusOnSelect: true
     });
 
-
+    let bid_form = document.getElementById("bid_form");
     // Function to update the countdown
     function updateCountdown() {
-        // Set the target date and time (in UTC)
+        // Set the target date and time (in Local Timezone)
         const targetDate = new Date("<?php echo $end_datetime ?>");
 
         // Get the current date and time (in the user's timezone)
         const startDatetime = new Date("<?php echo $start_datetime ?>");
 
         const now = new Date();
-
+        
         // Calculate the remaining time
         const timeDifference = targetDate - now;
         // console.log(timeDifference);
@@ -182,6 +183,7 @@ endif;
         if (check_start <= 0) {
             let elem_c = document.getElementById("dk_timer_auction");
             elem_c.innerHTML = "<div class='aunction-start aunction-dates'>Auction will start on: <?php echo $start_datetime ?></div>";
+            bid_form.style.display = 'none';
             // elem_c.parentNode.closest('section').remove();
             // Perform any action here when the countdown reaches zero
             // For example: redirect to another page, display a message, etc.
@@ -192,6 +194,7 @@ endif;
         if (timeDifference <= 0) {
             let elem_c = document.getElementById("dk_timer_auction");
             elem_c.innerHTML = "<div class='aunction-end aunction-dates'>Auction has been ended";
+            bid_form.style.display = 'none';
             // elem_c.parentNode.closest('section').remove();
             // Perform any action here when the countdown reaches zero
             // For example: redirect to another page, display a message, etc.
@@ -215,6 +218,7 @@ endif;
             day_display = "<div class='timer_area'><div class='itm_dk day_dk'><span class='itm_prefix_dk'>Day</span><span class='itm_value_dk'>" + daysString + "</span></div> ";
         }
         document.getElementById("dk_timer_auction").innerHTML = day_display + "<div class='itm_dk'><span class='itm_prefix_dk'>Hr</span><span class='itm_value_dk'>" + hoursString + "</span></div>:<div class='itm_dk'><span class='itm_prefix_dk'>Min</span><span class='itm_value_dk'>" + minutesString + "</span></div>:<div class='itm_dk'><span class='itm_prefix_dk'>Sec</span><span class='itm_value_dk'>" + secondsString + "</span></div></div>";
+        bid_form.style.display = 'block';
     }
 
     // Call the updateCountdown function every second to keep the countdown updated
