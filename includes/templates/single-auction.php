@@ -25,6 +25,8 @@ if (have_posts()):
 
         $start_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'start_datetime', true)));
         $end_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'end_datetime', true)));
+        $current_datetime = date("Y-m-d H:i:s");
+
         $location = get_post_meta($post->ID, 'location', true);
         $initial_cost = get_post_meta($post_id, 'initial_cost', true);
         $current_cost = $initial_cost;
@@ -106,6 +108,7 @@ if (have_posts()):
                             <div id="dk_timer_auction"></div>
                             <?php } ?>
                             <!-- <label><input type="number" min="<?php echo $current_cost ?>" step="<?php echo $default_bid_increment ?>" value="<?php echo $current_cost ?>" /></label> -->
+                            <?php if ($current_datetime >= $start_datetime && $current_datetime <= $end_datetime) {?>
                             <form id="bid_form">
                                 <?php if (!empty($initial_cost)) { ?>
                                 <div class="min-add-button">
@@ -121,6 +124,7 @@ if (have_posts()):
                                     <input type="submit" value="Bid" id="submit_bid" />
                                 <?php } ?>
                             </form>
+                            <?php }?>
                             <div id="bidding_response"></div>
                             <?php if (!empty($location)) { ?>
                                 <p><?php echo 'Location: ' . $location; ?></p>
