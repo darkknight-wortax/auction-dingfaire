@@ -41,6 +41,16 @@ function auction_enqueue_scripts() {
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce'    => wp_create_nonce('bidding_form_nonce'),
     ));
+    wp_enqueue_media();
+    // wp_localize_script('auction-scripts', 'auctionAjax', array(
+    //     'ajaxurl' => admin_url('admin-ajax.php'),
+    //     'nonce' => wp_create_nonce('auction_nonce')
+    // ));
+    // Pass the auction ID to the script
+    wp_localize_script('auction-scripts', 'auctionSseData', array(
+        'auction_id' => get_the_ID(),
+        'sse_url' => home_url('/?sse_auction_update=1&auction_id=' . get_the_ID())
+    ));
 }
 
 // Add admin menu page for plugin options

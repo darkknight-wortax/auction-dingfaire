@@ -2,12 +2,17 @@
 // Template Name: Auction Single
 get_header();
 
-if (have_posts()):
-    while (have_posts()):
+if (have_posts()) :
+    while (have_posts()) :
         the_post();
         $plugin_path = plugin_dir_url(__FILE__);
-        
+
         $post_id = get_the_ID();
+
+        $post_author_id = get_post_field('post_author', $post_id);
+
+        // print_r($post_author_id);
+
         global $wpdb;
         $table_name = $wpdb->prefix . 'auction_bidding';
 
@@ -29,7 +34,7 @@ if (have_posts()):
         $current_datetime = current_datetime()->format('Y-m-d H:i:s');
         // print_r($current_date_time);
 
-        $location = get_post_meta($post->ID, 'location', true);
+        $location = get_post_meta($post_id, 'location', true);
         $initial_cost = get_post_meta($post_id, 'initial_cost', true);
         $current_cost = $initial_cost;
 
@@ -43,7 +48,7 @@ if (have_posts()):
             $default_bid_increment = get_option('bid_increment');
         }
 
-        ?>
+?>
 
         <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '../../assets/css/slick.min.css'); ?>">
         <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '../../assets/css/slick-theme.min.css'); ?>">
@@ -61,13 +66,12 @@ if (have_posts()):
                         <div class="col_1_dk">
                             <?php
                             // Output the featured image
-                            if(get_the_post_thumbnail_url()){
+                            if (get_the_post_thumbnail_url()) {
                                 $featured_image = '<div><img src="' . get_the_post_thumbnail_url(null, 'full') . '" alt="Featured Image" class=""></div>';
+                            } else {
+                                $featured_image = '<div><img src="' . esc_url($plugin_path . '../../assets/images/thumbnail-auction.png') . '" class=""></div>';
                             }
-                            else{
-                                $featured_image = '<div><img src="'.esc_url($plugin_path . '../../assets/images/thumbnail-auction.png').'" class=""></div>';
-                            }
-                            
+
 
                             // Output the gallery images
                             $gallery_images = '';
@@ -85,14 +89,14 @@ if (have_posts()):
                                 <?php echo $gallery_images; ?>
                             </div>
 
-                            <?php if($gallery_image_ids[0]){
+                            <?php if ($gallery_image_ids[0]) {
                                 //print_r($gallery_image_ids[0]);
-                                ?>
+                            ?>
                                 <div class="slider-nav-single-auction">
                                     <?php echo $featured_image; ?>
                                     <?php echo $gallery_images; ?>
                                 </div>
-                            <?php }?>
+                            <?php } ?>
 
                         </div>
                         <!-- Column 1 End-->
@@ -107,20 +111,21 @@ if (have_posts()):
                                 <p>Latest Bid: <span id="latest_bid"><?php echo $current_currency . $last_bid; ?></span></p>
                             <?php } ?>
                             <?php if (!empty($initial_cost)) { ?>
-                            <div id="dk_timer_auction"></div>
+                                <div id="dk_timer_auction"></div>
                             <?php } ?>
                             <!-- <label><input type="number" min="<?php echo $current_cost ?>" step="<?php echo $default_bid_increment ?>" value="<?php echo $current_cost ?>" /></label> -->
-                            
-                            <form id="bid_form" style="<?php if ($current_datetime >= $start_datetime && $current_datetime <= $end_datetime) {echo 'display:none';}?>">
+
+                            <form id="bid_form" style="<?php if ($current_datetime >= $start_datetime && $current_datetime <= $end_datetime) {
+                                                            echo 'display:none';
+                                                        } ?>">
                                 <?php if (!empty($initial_cost)) { ?>
-                                <div class="min-add-button">
-                                    <div class="input-group_audf">
-                                        <a href="#" class="input-group-addon minus_audf increment_audf">-</a>
-                                        <input type="text" class="form-control" id="auction_cost"
-                                            value="<?php echo $current_cost ?>" readonly>
-                                        <a href="#" class="input-group-addon plus_audf increment_audf">+</a>
+                                    <div class="min-add-button">
+                                        <div class="input-group_audf">
+                                            <a href="#" class="input-group-addon minus_audf increment_audf">-</a>
+                                            <input type="text" class="form-control" id="auction_cost" value="<?php echo $current_cost ?>" readonly>
+                                            <a href="#" class="input-group-addon plus_audf increment_audf">+</a>
+                                        </div>
                                     </div>
-                                </div>
                                 <?php } ?>
                                 <?php if (!empty($initial_cost) && !empty($end_datetime)) { ?>
                                     <input type="submit" value="Bid" id="submit_bid" />
@@ -142,7 +147,7 @@ if (have_posts()):
 
             </div>
         </div>
-        <?php
+<?php
     endwhile;
 endif;
 
@@ -174,7 +179,7 @@ endif;
         const startDatetime = new Date("<?php echo $start_datetime ?>");
 
         const now = new Date();
-        
+
         // Calculate the remaining time
         const timeDifference = targetDate - now;
         // console.log(timeDifference);
@@ -229,8 +234,8 @@ endif;
 
 
     //Step Buttons
-    jQuery(function ($) {
-        $('.increment_audf').click(function () {
+    jQuery(function($) {
+        $('.increment_audf').click(function() {
             var valueElement = $('#' + $(this).siblings('input').attr('id'));
 
             if ($(this).hasClass('plus_audf')) {
@@ -241,6 +246,28 @@ endif;
 
             return false;
         });
+        // if (!!window.EventSource) {
+        //     // var sseUrl = auctionSseData.sse_url;
+        //     // var eventSource = new EventSource(sseUrl);
+        //     var eventSource = new EventSource('<?php echo get_site_url()?>/wp-admin/admin-ajax.php?action=sse_auction_update&auction_id=<?php echo $post_id?>');
+        //     console.log('SSE Started');
+
+        //     eventSource.onmessage = function(event) {
+        //         var data = JSON.parse(event.data);
+        //         var currentCost = data.current_bid;
+
+        //         // Update the auction cost on the page
+        //         console.log(currentCost);
+        //         // $('#auction-current-cost').text(currentCost);
+        //     };
+
+        //     eventSource.onerror = function() {
+        //         console.log('SSE connection error.');
+        //         eventSource.close();
+        //     };
+        // } else {
+        //     console.log('SSE not supported in this browser.');
+        // }
     });
 </script>
 
