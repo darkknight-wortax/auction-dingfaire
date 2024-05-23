@@ -22,7 +22,7 @@ function auction_dingfaire_init() {
     // Add other initialization actions here if needed
 }
 // Activation hook
-register_activation_hook(__FILE__, 'auction_create_submit_auction_page');
+// register_activation_hook(__FILE__, 'auction_create_submit_auction_page');
 // Hook the table creation function to the plugin activation
 register_activation_hook(__FILE__, 'create_auction_bidding_table');
 // Create new my auction page and its sub URLs along with registering templates

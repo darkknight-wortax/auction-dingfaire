@@ -3,7 +3,7 @@
 
 get_header();
 ?>
-
+<?php include_once(plugin_dir_path(__FILE__) . '../dashboard-sidebar.php');?>
 <div class="content">
     <h2>Submit Auction</h2>
     <form id="submit-auction-form" method="post">
