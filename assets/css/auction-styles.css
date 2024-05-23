@@ -1,3 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Bhai+2:wght@400..800&display=swap');
+
+.my-auction-main {
+  font-family: "Baloo Bhai 2", sans-serif;
+}
+:root {
+    --kelly-green: #76BC21;
+    --alice-blue: #D6E0E8;
+    --white: #FFFFFF;
+    --black: #000000;
+    --davy-gray: #4A4A49;
+    --prussian-blue: #1E293B;
+
+    --main-heaing-font : 40px;
+    --text-font: 16px;
+    transition: all 0.3s;
+}
 #section_1 {}
 
 .section_1_auction {
@@ -28,7 +45,7 @@
     padding: 10px;
 }
 
-/* Timer Style Start */
+/* / Timer Style Start / */
 div.timer_area {
     background-image: linear-gradient(rgb(0 0 0) 0%, rgb(129 129 129) 100%);
     border-radius: 5px;
@@ -46,7 +63,7 @@ div.timer_area {
     align-items: flex-end;
     padding: 10px;
     max-width: 340px;
-    /* margin: auto; */
+    / margin: auto; /
     margin-bottom: 10px;
 }
 
@@ -102,7 +119,7 @@ div.timer_area {
     margin: 0 5px
 }
 
-/* Timer Style End */
+/* / Timer Style End / */
 .input-group_audf{
     display: flex;
 }
@@ -136,4 +153,66 @@ input#submit_bid {
     border-radius: 5px;
     text-transform: uppercase;
     cursor: pointer;
+}
+.container {
+    max-width: 1200px;
+    margin:  0 auto;
+    padding: 20px
+}
+.d-flex{
+    display: flex;
+    gap: 20px;
+}
+.auction-sidebar{
+    flex: 1 0 25%;
+    / background: var(--alice-blue); /
+}
+.auction-content-area{
+    flex: 1 0 75%;
+}
+.auction-sidebar ul{ 
+    padding: 0;
+    list-style: none;
+}
+.auction-sidebar ul li{
+    border-bottom: 1px solid;
+}
+.auction-sidebar ul li.active-menu a{
+    font-weight: 600;
+}
+.auction-sidebar ul li:not(:last-child){
+    margin-bottom: 12px;
+ 
+}
+.auction-sidebar ul a{
+    display: block;
+    padding: 10px 20px;
+    color: var(--kelly-green);
+    text-decoration: unset;
+}
+.my-auction-main .auction-btn,
+.my-auction-main .auction-btn:hover{
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--white);
+    background-color: var(--kelly-green);
+    border-radius: 50px 50px 50px 50px;
+    padding: 10px 25px 10px 25px;
+    border: none;
+    min-width: 200px;
+}
+@media only screen and (max-width: 767px) {
+    .d-flex{
+        flex-wrap: wrap;
+    }
+    .menu-inline li {
+        display: inline-block;
+        
+    }
+    .auction-sidebar ul li:not(:last-child){
+        margin: 0 10px 0 0;
+    }
+    .auction-sidebar ul a{
+        padding: 10px;
+    }
 }

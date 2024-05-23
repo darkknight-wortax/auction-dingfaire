@@ -3,10 +3,16 @@
 
 get_header();
 ?>
-<?php include_once(plugin_dir_path(__FILE__) . '../dashboard-sidebar.php');?>
-<div class="content">
-    <h2>My Bids</h2>
-    <p>This is the My Bids page.</p>
+<div class="my-auction-main">
+    <div class="container d-flex">
+        <div class="auction-sidebar">
+            <?php include_once (plugin_dir_path(__FILE__) . '../dashboard-sidebar.php'); ?>
+        </div>
+        <div class="auction-content-area">
+            <h1>My Bids</h1>
+            <p>This is the My Auctions page.</p>
+        </div>
+    </div>
 </div>
 
 <?php

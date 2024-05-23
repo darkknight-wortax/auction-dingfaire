@@ -326,6 +326,9 @@ add_filter('ajax_query_attachments_args', 'show_only_images_in_media_library');
 // Shortcode to display the auction submission form
 function auction_submission_form_shortcode()
 {
+    if (!is_user_logged_in()) {
+        return '<p>You need to be logged in to submit an auction.</p>';
+    }
     ob_start();
 ?>
     <form id="auction-submission-form" method="post">
@@ -370,7 +373,7 @@ function auction_submission_form_shortcode()
             <?php endforeach; ?>
         </select><br>
 
-        <input type="submit" value="Submit Auction">
+        <input type="submit" class="auction-btn" value="Submit Auction">
     </form>
 
 
