@@ -19,9 +19,13 @@ if ($auction_id) {
             <tbody>
                 <?php
                 foreach ($get_auction_bids as $bids) {
+                    $cur_user = "";
+                    if($bids->user_id == $user_id){
+                        $cur_user = "my_bids_tr";
+                    }
                     $user = get_user_by('id', $bids->user_id);
                 ?>
-                    <tr>
+                    <tr class="<?php echo $cur_user;?>">
                         <td><?php print_r($user->display_name);?></td>
                         <td><?php echo $currency . $bids->bidding_amount; ?></td>
                     </tr>
