@@ -1,5 +1,23 @@
 <?php
 
+// Ensure the code runs only in the admin area
+if (is_admin()) {
+    // Hook to admin_notices to display an admin notice
+    add_action('admin_notices', 'auction_dingfaire_check_woocommerce');
+    
+    // Function to check if WooCommerce is active
+    function auction_dingfaire_check_woocommerce() {
+        // Check if WooCommerce is not active
+        if (!is_plugin_active('woocommerce/woocommerce.php')) {
+            // Display admin notice
+            echo '<div class="error"><p><strong>Auction - Dingfaire requires WooCommerce to be installed and active to work properly.</strong></p></div>';
+
+            // Deactivate the plugin
+            deactivate_plugins(plugin_basename(__FILE__));
+        }
+    }
+}
+
 
 // Add common functions used throughout the plugin here
 add_filter('template_include', 'auction_custom_template');
