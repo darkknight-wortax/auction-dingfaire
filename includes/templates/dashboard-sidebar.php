@@ -10,7 +10,7 @@ $get_url = get_site_url();
 
 <ul class="menu-inline">
     <li class="<?php echo ($current_url == $get_url.'/my-auctions/') ? 'active-menu' : ''; ?>">
-        <a href="<?php echo $get_url?>/my-auctions/">Dashboard</a>
+        <a href="<?php echo $get_url?>/my-auctions/">Dashboard - Auctions</a>
     </li>
     <li class="<?php echo ($current_url == $get_url.'/my-auctions/my-bids/') ? 'active-menu' : ''; ?>">
         <a href="<?php echo $get_url?>/my-auctions/my-bids/">My Bids</a>

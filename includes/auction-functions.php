@@ -345,7 +345,7 @@ add_filter('ajax_query_attachments_args', 'show_only_images_in_media_library');
 function auction_submission_form_shortcode()
 {
     if (!is_user_logged_in()) {
-        return '<p>You need to be logged in to submit an auction.</p>';
+        return '<p>Please login to Submit Auction.</p>';
     }
     ob_start();
 ?>
