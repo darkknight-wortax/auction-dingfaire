@@ -29,6 +29,24 @@ jQuery(document).ready(function($) {
         });
     });
 
+    $(window).on('load', function(){
+        $.ajax({
+            url: auctionViewCount.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'save_view_count',
+                post_id: auctionViewCount.post_id,
+                _ajax_nonce: auctionViewCount.nonce
+            },
+            success: function(response) {
+                console.log(response.data);
+            },
+            error: function(error) {
+                console.log('Error:', error);
+            }
+        });
+    });
+
     
 
 

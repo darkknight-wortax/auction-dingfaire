@@ -67,7 +67,27 @@ function create_auction_bidding_table()
             PRIMARY KEY  (id)
         ) $charset_collate;";
 
-        require_once (ABSPATH . 'wp-admin/includes/upgrade.php');
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+    }
+
+
+    $table_name = $wpdb->prefix . 'auction_view_count';
+    // Check if the table already exists
+    if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $sql = "CREATE TABLE $table_name (
+        id mediumint(9) NOT NULL AUTO_INCREMENT,
+        post_id mediumint(9) NOT NULL,
+        user_id mediumint(9) DEFAULT 0,
+        ip_address varchar(45) NOT NULL,
+        time int(11) NOT NULL,
+        PRIMARY KEY  (id)
+    ) $charset_collate;";
+
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
     }
 }
@@ -350,7 +370,7 @@ function auction_submission_form_shortcode()
         return '<p>Please login to Submit Auction.</p>';
     }
     ob_start();
-    ?>
+?>
     <form id="auction-submission-form" class="auction-submission-form" method="post">
         <div class="auction-form-fields-wrapper">
             <div class="auction-column auction-col-50">
@@ -368,7 +388,7 @@ function auction_submission_form_shortcode()
                 );
                 ?>
                 <select id="auction-category" name="auction_type" required>
-                    <?php foreach ($categories as $category): ?>
+                    <?php foreach ($categories as $category) : ?>
                         <option value="<?php echo esc_attr($category->term_id); ?>"><?php echo esc_html($category->name); ?>
                         </option>
                     <?php endforeach; ?>
@@ -417,9 +437,9 @@ function auction_submission_form_shortcode()
 
 
     <script>
-        jQuery(document).ready(function ($) {
+        jQuery(document).ready(function($) {
             // Handle featured image upload
-            $('#auction-featured-image-btn').click(function (e) {
+            $('#auction-featured-image-btn').click(function(e) {
                 e.preventDefault();
                 var imageUploader = wp.media({
                     title: 'Upload Featured Image',
@@ -427,7 +447,7 @@ function auction_submission_form_shortcode()
                         text: 'Set as Featured Image'
                     },
                     multiple: false
-                }).on('select', function () {
+                }).on('select', function() {
                     var attachment = imageUploader.state().get('selection').first().toJSON();
                     $('#auction-featured-image').val(attachment.id);
                     $('#auction-featured-image-preview').html('<div class="image-preview"><img src="' + attachment.url + '"><a href="#" class="remove-image" data-image-id="' + attachment.id + '">Remove</a></div>');
@@ -435,7 +455,7 @@ function auction_submission_form_shortcode()
             });
 
             // Handle gallery images upload
-            $('#auction-gallery-images-btn').click(function (e) {
+            $('#auction-gallery-images-btn').click(function(e) {
                 e.preventDefault();
                 var imageUploader = wp.media({
                     title: 'Upload Gallery Images',
@@ -443,10 +463,10 @@ function auction_submission_form_shortcode()
                         text: 'Add to Gallery'
                     },
                     multiple: true
-                }).on('select', function () {
+                }).on('select', function() {
                     var attachments = imageUploader.state().get('selection').toJSON();
                     var imageIDs = $('#auction-gallery-images').val().split(',').filter(Boolean);
-                    attachments.forEach(function (attachment) {
+                    attachments.forEach(function(attachment) {
                         imageIDs.push(attachment.id);
                         $('#auction-gallery-images-preview').append('<div class="image-preview"><img src="' + attachment.url + '"><a href="#" class="remove-image" data-image-id="' + attachment.id + '">Remove</a></div>');
                     });
@@ -455,19 +475,19 @@ function auction_submission_form_shortcode()
             });
 
             // Handle image removal
-            $('body').on('click', '.remove-image', function (e) {
+            $('body').on('click', '.remove-image', function(e) {
                 e.preventDefault();
                 var imageID = $(this).data('image-id');
                 $(this).parent().remove();
                 var imageIDs = $('#auction-gallery-images').val().split(',').filter(Boolean);
-                imageIDs = imageIDs.filter(function (id) {
+                imageIDs = imageIDs.filter(function(id) {
                     return id != imageID;
                 });
                 $('#auction-gallery-images').val(imageIDs.join(','));
             });
 
             // Handle form submission
-            $('#auction-submission-form').submit(function (e) {
+            $('#auction-submission-form').submit(function(e) {
                 e.preventDefault();
                 if (!<?php echo is_user_logged_in() ? 'true' : 'false'; ?>) {
                     alert('You must be logged in to submit an auction.');
@@ -479,7 +499,7 @@ function auction_submission_form_shortcode()
                     url: '<?php echo admin_url('admin-ajax.php'); ?>',
                     type: 'POST',
                     data: formData + '&action=auction_fe_submission',
-                    success: function (response) {
+                    success: function(response) {
                         alert(response.data.message);
                         if (response.success) {
                             $('#auction-submission-form')[0].reset();
@@ -487,7 +507,7 @@ function auction_submission_form_shortcode()
                             $('#auction-gallery-images-preview').empty();
                         }
                     },
-                    error: function (response) {
+                    error: function(response) {
                         alert('An error occurred while submitting the auction.');
                     }
                 });
@@ -496,7 +516,7 @@ function auction_submission_form_shortcode()
     </script>
 
 
-    <?php
+<?php
     return ob_get_clean();
 }
 add_shortcode('auction_submission_form', 'auction_submission_form_shortcode');
@@ -560,3 +580,58 @@ function auction_data_submission_frontend()
 }
 add_action('wp_ajax_auction_fe_submission', 'auction_data_submission_frontend');
 add_action('wp_ajax_nopriv_auction_fe_submission', 'auction_data_submission_frontend');
+
+
+
+// Hook to handle AJAX request for logged-in users
+add_action('wp_ajax_save_view_count', 'auction_save_view_count');
+
+// Hook to handle AJAX request for guest users
+add_action('wp_ajax_nopriv_save_view_count', 'auction_save_view_count');
+
+function auction_save_view_count() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'auction_view_count';
+
+    $post_id = intval($_POST['post_id']);
+    $user_id = get_current_user_id();
+    $ip_address = $_SERVER['REMOTE_ADDR'];
+    $last_tfhrs = time() - 86400;
+
+    // Check if user is logged in
+    if ($user_id > 0) {
+        // Check if this user has already viewed this post today
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE post_id = %d AND user_id = %d AND time > %d",
+            $post_id, $user_id, $last_tfhrs
+        ));
+
+        if ($row) {
+            wp_send_json_success('View already recorded today.');
+            wp_die();
+        }
+    } else {
+        // Check if this IP has already viewed this post
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE post_id = %d AND ip_address = %s",
+            $post_id, $ip_address
+        ));
+
+        if ($row) {
+            wp_send_json_success('View already recorded for this IP.');
+            wp_die();
+        }
+    }
+
+    // Insert the view count record into the database
+    $wpdb->insert($table_name, array(
+        'post_id' => $post_id,
+        'user_id' => $user_id,
+        'ip_address' => $ip_address,
+        'time' => time()
+    ));
+
+    wp_send_json_success('View count recorded.');
+    wp_die();
+}
+
