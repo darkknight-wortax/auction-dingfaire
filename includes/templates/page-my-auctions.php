@@ -60,7 +60,7 @@ get_header();
                         }
                         ?>
                         <tr>
-                            <td><?php the_title(); ?></td>
+                            <td><a href="<?php the_permalink(); ?>" target="_blank"><?php the_title(); ?></a></td>
                             <td><?php echo esc_html($currency) . get_post_meta(get_the_ID(), 'initial_cost', true); ?></td>
                             <td><?php echo esc_html($status); ?></td>
 
