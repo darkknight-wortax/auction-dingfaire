@@ -71,10 +71,10 @@ get_header();
                     echo '</tbody>';
                     echo '</table>';
                 } else {
-                    echo '<p>No auctions found.</p>';
+                    echo '<p>No auctions found against your profile.</p>';
                 }
 
-                wp_reset_postdata();
+                wp_reset_postdata(); 
             }
             ?>
         </div>
