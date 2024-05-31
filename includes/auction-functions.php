@@ -4,9 +4,10 @@
 if (is_admin()) {
     // Hook to admin_notices to display an admin notice
     add_action('admin_notices', 'auction_dingfaire_check_woocommerce');
-    
+
     // Function to check if WooCommerce is active
-    function auction_dingfaire_check_woocommerce() {
+    function auction_dingfaire_check_woocommerce()
+    {
         // Check if WooCommerce is not active
         if (!is_plugin_active('woocommerce/woocommerce.php')) {
             // Display admin notice
@@ -66,7 +67,7 @@ function create_auction_bidding_table()
             PRIMARY KEY  (id)
         ) $charset_collate;";
 
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        require_once (ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
     }
 }
@@ -167,7 +168,7 @@ function handle_bidding_form_submission()
         wp_send_json_error('You must be logged in to Bid having an active user account.');
         die();
     }
-    $url     = wp_get_referer();
+    $url = wp_get_referer();
     $post_id = url_to_postid($url);
     $start_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'start_datetime', true)));
     $end_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'end_datetime', true)));
@@ -242,7 +243,8 @@ function handle_bidding_form_submission()
 
 //SSE for Updating the Latest Bid from server side
 // Function to handle SSE requests
-function my_sse_handler2() {
+function my_sse_handler2()
+{
     // Set headers for SSE
     header('Content-Type: text/event-stream');
     header('Cache-Control: no-cache');
@@ -267,16 +269,16 @@ function my_sse_handler2() {
 
     // Infinite loop to keep the connection open
     // while (true) {
-        // Fetch the latest auction cost from the database
-        $result = $wpdb->get_results("SELECT bidding_amount FROM $table_name WHERE post_id = $auction_id ORDER BY ID DESC LIMIT 1");
-        $current_bid = !empty($result) ? $result[0]->bidding_amount : 0;
+    // Fetch the latest auction cost from the database
+    $result = $wpdb->get_results("SELECT bidding_amount FROM $table_name WHERE post_id = $auction_id ORDER BY ID DESC LIMIT 1");
+    $current_bid = !empty($result) ? $result[0]->bidding_amount : 0;
 
-        // Send the current bid as SSE
-        echo "data: " . json_encode(array('current_bid' => $current_bid)) . "\n\n";
-        flush();
+    // Send the current bid as SSE
+    echo "data: " . json_encode(array('current_bid' => $current_bid)) . "\n\n";
+    flush();
 
-        // Sleep for a while before checking for updates again
-        // sleep(2);
+    // Sleep for a while before checking for updates again
+    // sleep(2);
     // }
 }
 // add_action('wp_ajax_sse_auction_update', 'my_sse_handler2');
@@ -348,58 +350,76 @@ function auction_submission_form_shortcode()
         return '<p>Please login to Submit Auction.</p>';
     }
     ob_start();
-?>
-    <form id="auction-submission-form" method="post">
-        <label for="auction-title">Title:</label>
-        <input type="text" id="auction-title" name="auction_title" required><br>
+    ?>
+    <form id="auction-submission-form" class="auction-submission-form" method="post">
+        <div class="auction-form-fields-wrapper">
+            <div class="auction-column auction-col-50">
+                <label for="auction-title">Title:</label>
+                <input type="text" id="auction-title" class="auction-input" name="auction_title" required>
+            </div>
+            <div class="auction-column auction-col-50">
+                <label for="auction-category">Category:</label>
+                <?php
+                $categories = get_terms(
+                    array(
+                        'taxonomy' => 'auction_type',
+                        'hide_empty' => false,
+                    )
+                );
+                ?>
+                <select id="auction-category" name="auction_type" required>
+                    <?php foreach ($categories as $category): ?>
+                        <option value="<?php echo esc_attr($category->term_id); ?>"><?php echo esc_html($category->name); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="auction-column auction-col-50">
+                <label for="auction-initial-cost">Initial Cost:</label>
+                <input type="number" id="auction-initial-cost" class="auction-input" name="auction_initial_cost" required>
+            </div>
+            <div class="auction-column auction-col-50">
+                <label for="auction-location">Location:</label>
+                <input type="text" id="auction-location" class="auction-input" name="auction_location" required>
+            </div>
+            <div class="auction-column auction-col-50">
+                <label for="auction-featured-image">Featured Image:</label>
+                <input type="button" id="auction-featured-image-btn" class="button auction-btn" value="Upload Featured Image">
+                <input type="hidden" id="auction-featured-image" name="auction_featured_image">
+                <div id="auction-featured-image-preview" class="auction-image-preview"></div>
+            </div>
+            <div class="auction-column auction-col-50">
+                <label for="auction-gallery-images">Image Gallery:</label>
+                <input type="button" id="auction-gallery-images-btn" class="button auction-btn" value="Upload Gallery Images">
+                <input type="hidden" id="auction-gallery-images" name="auction_gallery_images">
+                <div id="auction-gallery-images-preview" class="auction-image-preview auction-gallery-images-preview"></div>
+            </div>
+            <div class="auction-column auction-col-50">
+                <label for="auction-start-datetime">Start Date/Time:</label>
+                <input type="datetime-local" id="auction-start-datetime" class="auction-input" name="auction_start_datetime" required>
+            </div>
+            <div class="auction-column auction-col-50">
+                <label for="auction-end-datetime">End Date/Time:</label>
+                <input type="datetime-local" id="auction-end-datetime" class="auction-input" name="auction_end_datetime" required>
+            </div>
+            <div class="auction-column auction-col-50">
+                <label for="auction-description">Description:</label>
+                <textarea id="auction-description" name="auction_description" class="auction-input" required></textarea>
+            </div>
+            <div class="auction-column auction-col-100">
+                <input type="submit" class="auction-btn" value="Submit Auction">
+            </div>
 
-        <label for="auction-description">Description:</label>
-        <textarea id="auction-description" name="auction_description" required></textarea><br>
 
-        <label for="auction-featured-image">Featured Image:</label>
-        <input type="button" id="auction-featured-image-btn" class="button" value="Upload Featured Image">
-        <input type="hidden" id="auction-featured-image" name="auction_featured_image">
-        <div id="auction-featured-image-preview"></div><br>
-
-        <label for="auction-gallery-images">Image Gallery:</label>
-        <input type="button" id="auction-gallery-images-btn" class="button" value="Upload Gallery Images">
-        <input type="hidden" id="auction-gallery-images" name="auction_gallery_images">
-        <div id="auction-gallery-images-preview"></div><br>
-
-        <label for="auction-start-datetime">Start Date/Time:</label>
-        <input type="datetime-local" id="auction-start-datetime" name="auction_start_datetime" required><br>
-
-        <label for="auction-end-datetime">End Date/Time:</label>
-        <input type="datetime-local" id="auction-end-datetime" name="auction_end_datetime" required><br>
-
-        <label for="auction-initial-cost">Initial Cost:</label>
-        <input type="number" id="auction-initial-cost" name="auction_initial_cost" required><br>
-
-        <label for="auction-location">Location:</label>
-        <input type="text" id="auction-location" name="auction_location" required><br>
-
-        <label for="auction-category">Category:</label>
-        <?php
-        $categories = get_terms(array(
-            'taxonomy' => 'auction_type',
-            'hide_empty' => false,
-        ));
-        ?>
-        <select id="auction-category" name="auction_type" required>
-            <?php foreach ($categories as $category) : ?>
-                <option value="<?php echo esc_attr($category->term_id); ?>"><?php echo esc_html($category->name); ?></option>
-            <?php endforeach; ?>
-        </select><br>
-
-        <input type="submit" class="auction-btn" value="Submit Auction">
+        </div>
     </form>
 
 
 
     <script>
-        jQuery(document).ready(function($) {
+        jQuery(document).ready(function ($) {
             // Handle featured image upload
-            $('#auction-featured-image-btn').click(function(e) {
+            $('#auction-featured-image-btn').click(function (e) {
                 e.preventDefault();
                 var imageUploader = wp.media({
                     title: 'Upload Featured Image',
@@ -407,7 +427,7 @@ function auction_submission_form_shortcode()
                         text: 'Set as Featured Image'
                     },
                     multiple: false
-                }).on('select', function() {
+                }).on('select', function () {
                     var attachment = imageUploader.state().get('selection').first().toJSON();
                     $('#auction-featured-image').val(attachment.id);
                     $('#auction-featured-image-preview').html('<div class="image-preview"><img src="' + attachment.url + '"><a href="#" class="remove-image" data-image-id="' + attachment.id + '">Remove</a></div>');
@@ -415,7 +435,7 @@ function auction_submission_form_shortcode()
             });
 
             // Handle gallery images upload
-            $('#auction-gallery-images-btn').click(function(e) {
+            $('#auction-gallery-images-btn').click(function (e) {
                 e.preventDefault();
                 var imageUploader = wp.media({
                     title: 'Upload Gallery Images',
@@ -423,10 +443,10 @@ function auction_submission_form_shortcode()
                         text: 'Add to Gallery'
                     },
                     multiple: true
-                }).on('select', function() {
+                }).on('select', function () {
                     var attachments = imageUploader.state().get('selection').toJSON();
                     var imageIDs = $('#auction-gallery-images').val().split(',').filter(Boolean);
-                    attachments.forEach(function(attachment) {
+                    attachments.forEach(function (attachment) {
                         imageIDs.push(attachment.id);
                         $('#auction-gallery-images-preview').append('<div class="image-preview"><img src="' + attachment.url + '"><a href="#" class="remove-image" data-image-id="' + attachment.id + '">Remove</a></div>');
                     });
@@ -435,19 +455,19 @@ function auction_submission_form_shortcode()
             });
 
             // Handle image removal
-            $('body').on('click', '.remove-image', function(e) {
+            $('body').on('click', '.remove-image', function (e) {
                 e.preventDefault();
                 var imageID = $(this).data('image-id');
                 $(this).parent().remove();
                 var imageIDs = $('#auction-gallery-images').val().split(',').filter(Boolean);
-                imageIDs = imageIDs.filter(function(id) {
+                imageIDs = imageIDs.filter(function (id) {
                     return id != imageID;
                 });
                 $('#auction-gallery-images').val(imageIDs.join(','));
             });
 
             // Handle form submission
-            $('#auction-submission-form').submit(function(e) {
+            $('#auction-submission-form').submit(function (e) {
                 e.preventDefault();
                 if (!<?php echo is_user_logged_in() ? 'true' : 'false'; ?>) {
                     alert('You must be logged in to submit an auction.');
@@ -459,7 +479,7 @@ function auction_submission_form_shortcode()
                     url: '<?php echo admin_url('admin-ajax.php'); ?>',
                     type: 'POST',
                     data: formData + '&action=auction_fe_submission',
-                    success: function(response) {
+                    success: function (response) {
                         alert(response.data.message);
                         if (response.success) {
                             $('#auction-submission-form')[0].reset();
@@ -467,7 +487,7 @@ function auction_submission_form_shortcode()
                             $('#auction-gallery-images-preview').empty();
                         }
                     },
-                    error: function(response) {
+                    error: function (response) {
                         alert('An error occurred while submitting the auction.');
                     }
                 });
@@ -476,7 +496,7 @@ function auction_submission_form_shortcode()
     </script>
 
 
-<?php
+    <?php
     return ob_get_clean();
 }
 add_shortcode('auction_submission_form', 'auction_submission_form_shortcode');
@@ -508,19 +528,21 @@ function auction_data_submission_frontend()
     }
 
     // Create a new auction post
-    $auction_id = wp_insert_post(array(
-        'post_title' => $title,
-        'post_content' => $description,
-        'post_status' => 'pending',
-        'post_type' => 'auction',
-        'meta_input' => array(
-            'initial_cost' => $initial_cost,
-            'start_datetime' => $start_datetime,
-            'end_datetime' => $end_datetime,
-            'location' => $location,
-            'auction_gallery_images' => $gallery_images
+    $auction_id = wp_insert_post(
+        array(
+            'post_title' => $title,
+            'post_content' => $description,
+            'post_status' => 'pending',
+            'post_type' => 'auction',
+            'meta_input' => array(
+                'initial_cost' => $initial_cost,
+                'start_datetime' => $start_datetime,
+                'end_datetime' => $end_datetime,
+                'location' => $location,
+                'auction_gallery_images' => $gallery_images
+            )
         )
-    ));
+    );
 
     if (is_wp_error($auction_id)) {
         wp_send_json_error(array('message' => 'An error occurred while creating the auction.'));

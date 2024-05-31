@@ -6,7 +6,7 @@ get_header();
 <div class="my-auction-main">
     <div class="container d-flex">
         <div class="auction-sidebar">
-            <?php include_once(plugin_dir_path(__FILE__) . '/dashboard-sidebar.php'); ?>
+            <?php include_once (plugin_dir_path(__FILE__) . '/dashboard-sidebar.php'); ?>
         </div>
         <div class="auction-content-area">
             <h1><?php the_title(); ?></h1>
@@ -19,17 +19,64 @@ get_header();
                 $user_id = get_current_user_id();
                 $currency = get_option('auction_currency_general_dk');
 
-                if(current_user_can('administrator')){
+                $args = array(
+                    'post_type' => 'auction',
+                    'posts_per_page' => -1,
+                );
 
+                if (!current_user_can('administrator')) {
+                    $args['author'] = $user_id;
                 }
-                else{
 
+                $auction_query = new WP_Query($args);
+
+                if ($auction_query->have_posts()) {
+                    echo '<table class="auction-table">';
+                    echo '<thead>';
+                    echo '<tr>';
+                    echo '<th>Title</th>';
+                    echo '<th>Initial Cost</th>';
+                    echo '<th>Status</th>';
+                    echo '</tr>';
+                    echo '</thead>';
+                    echo '<tbody>';
+
+                    while ($auction_query->have_posts()) {
+                        $auction_query->the_post();
+                        $start_time = get_post_meta(get_the_ID(), 'start_datetime', true);
+                        $end_time = get_post_meta(get_the_ID(), 'end_datetime', true);
+                        $current_time = current_time('timestamp');
+                        
+                        if ($start_time && $end_time) {
+                            if ($current_time < strtotime($start_time)) {
+                                $status = 'Auction not started yet';
+                            } elseif ($current_time >= strtotime($start_time) && $current_time <= strtotime($end_time)) {
+                                $status = 'Auction is active';
+                            } else {
+                                $status = 'Auction ended';
+                            }
+                        } else {
+                            $status = 'No auction times set';
+                        }
+                        ?>
+                        <tr>
+                            <td><?php the_title(); ?></td>
+                            <td><?php echo esc_html($currency) . get_post_meta(get_the_ID(), 'initial_cost', true); ?></td>
+                            <td><?php echo esc_html($status); ?></td>
+
+                        </tr>
+                        <?php
+                    }
+
+                    echo '</tbody>';
+                    echo '</table>';
+                } else {
+                    echo '<p>No auctions found.</p>';
                 }
 
+                wp_reset_postdata();
+            }
             ?>
-                <p>This is the My Auctions page.</p>
-
-            <?php } ?>
         </div>
     </div>
 </div>
