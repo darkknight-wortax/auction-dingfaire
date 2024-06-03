@@ -62,7 +62,7 @@ if (have_posts()) :
 
         <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '../../assets/css/slick.min.css'); ?>">
         <link rel="stylesheet" href="<?php echo esc_url($plugin_path . '../../assets/css/slick-theme.min.css'); ?>">
-        <script src="<?php echo esc_url($plugin_path . '../../assets/js/slick.min.js'); ?>"></script>
+        <script src="<?php echo esc_url($plugin_path . '../../assets/js/slick.min.js'); ?>"></script> 
 
         <div id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
