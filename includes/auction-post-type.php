@@ -50,6 +50,9 @@ function auction_render_custom_fields() {
 
     echo '<label for="location">Location:</label><br>';
     echo '<input type="text" id="location" name="location" value="' . get_post_meta($post->ID, 'location', true) . '"><br>';
+
+    echo '<label for="shipping_fee">Shipping Fee:</label><br>';
+    echo '<input type="text" id="shipping_fee" name="shipping_fee" value="' . get_post_meta($post->ID, 'shipping_fee', true) . '"><br>';
 }
 
 // Save custom field data when the Auction post type is saved
@@ -84,6 +87,13 @@ function auction_save_custom_fields($post_id) {
             $post_id,
             'location',
             sanitize_text_field($_POST['location'])
+        );
+    }
+    if (array_key_exists('shipping_fee', $_POST)) {
+        update_post_meta(
+            $post_id,
+            'shipping_fee',
+            sanitize_text_field($_POST['shipping_fee'])
         );
     }
 }

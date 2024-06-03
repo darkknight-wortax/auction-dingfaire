@@ -399,6 +399,10 @@ function auction_submission_form_shortcode()
                 <input type="number" id="auction-initial-cost" class="auction-input" name="auction_initial_cost" required>
             </div>
             <div class="auction-column auction-col-50">
+                <label for="auction-shipping-fee">Shipping Fee:</label>
+                <input type="number" id="auction-shipping-fee" class="auction-input" name="shipping_fee" required>
+            </div>
+            <div class="auction-column auction-col-50">
                 <label for="auction-location">Location:</label>
                 <input type="text" id="auction-location" class="auction-input" name="auction_location" required>
             </div>
@@ -540,6 +544,7 @@ function auction_data_submission_frontend()
     $end_datetime = sanitize_text_field($_POST['auction_end_datetime']);
     $initial_cost = sanitize_text_field($_POST['auction_initial_cost']);
     $location = sanitize_text_field($_POST['auction_location']);
+    $auction_shipping_fee = sanitize_text_field($_POST['shipping_fee']);
     $category = intval($_POST['auction_type']);
 
     // Validate datetime
@@ -558,6 +563,7 @@ function auction_data_submission_frontend()
                 'initial_cost' => $initial_cost,
                 'start_datetime' => $start_datetime,
                 'end_datetime' => $end_datetime,
+                'shipping_fee' => $auction_shipping_fee,
                 'location' => $location,
                 'auction_gallery_images' => $gallery_images
             )

@@ -34,12 +34,18 @@ if (have_posts()) :
         $current_datetime = current_datetime()->format('Y-m-d H:i:s');
         // print_r($current_date_time);
 
+        //Setting Up Shipping Fee
+        $shipping_fee = get_post_meta($post_id, 'shipping_fee', true);
+        if(!$shipping_fee){
+            $shipping_fee = 0;
+        }
+
         $location = get_post_meta($post_id, 'location', true);
-        $initial_cost = get_post_meta($post_id, 'initial_cost', true);
-        $current_cost = $initial_cost;
+        $initial_cost = (int)get_post_meta($post_id, 'initial_cost', true)+ (int)$shipping_fee;
+        $current_cost = (int)$initial_cost + (int)$shipping_fee;
 
         if ($last_bid) {
-            $current_cost = $last_bid;
+            $current_cost = (int)$last_bid + (int)$shipping_fee;
         }
 
         // Default Bid increment from admin
@@ -47,6 +53,10 @@ if (have_posts()) :
         if (get_option('bid_increment')) {
             $default_bid_increment = get_option('bid_increment');
         }
+
+
+        $view_count = $wpdb->get_results("SELECT COUNT(id) as c_id FROM ".$wpdb->prefix."auction_view_count WHERE post_id = '".$post_id."' ")[0]->c_id; 
+
 
 ?>
 
@@ -104,11 +114,12 @@ if (have_posts()) :
                         <!-- Column 2 -->
                         <div class="col_2_dk">
                             <h2><?php the_title(); ?></h2>
+                            <label>View Count: <?php echo $view_count?></label>
                             <?php if (!empty($initial_cost)) { ?>
                                 <p>Initial Cost: <?php echo $current_currency . $initial_cost; ?></p>
                             <?php } ?>
                             <?php if ($last_bid) { ?>
-                                <p>Latest Bid: <span id="latest_bid"><?php echo $current_currency . $last_bid; ?></span></p>
+                                <p>Latest Bid: <span id="latest_bid"><?php echo $current_currency . ((int)$last_bid + (int)$shipping_fee); ?></span></p>
                             <?php } ?>
                             <?php if (!empty($initial_cost)) { ?>
                                 <div id="dk_timer_auction"></div>
