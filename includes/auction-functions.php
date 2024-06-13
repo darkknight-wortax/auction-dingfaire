@@ -641,7 +641,7 @@ function auction_dynamic_search_form()
     // Fetch auction categories
     $auction_categories = get_terms(array(
         'taxonomy' => 'auction_type',
-        'hide_empty' => false,
+        'hide_empty' => false, 
     ));
     // Fetch unique locations
     $locations = auction_get_unique_locations();
