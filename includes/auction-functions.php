@@ -162,19 +162,6 @@ function auction_template_include($template)
 }
 add_filter('template_include', 'auction_template_include');
 
-// Register shortcodes (if needed)
-// function auction_my_account_auctions_shortcode() {
-//     // Placeholder content for My Auctions account page
-//     ob_start();
-//     echo '<h2>My Auctions</h2>';
-//     echo '<p>This is the My Auctions account page.</p>';
-//     return ob_get_clean();
-// }
-// add_shortcode('My_Account_Auctions', 'auction_my_account_auctions_shortcode');
-
-
-
-
 //Function for Auction Bidding Ajax
 add_action('wp_ajax_submit_bidding_form', 'handle_bidding_form_submission');
 add_action('wp_ajax_nopriv_submit_bidding_form', 'handle_bidding_form_submission');
@@ -640,4 +627,76 @@ function auction_save_view_count() {
     wp_send_json_success('View count recorded.');
     wp_die();
 }
+
+
+
+//Search Form for Auction
+function auction_dynamic_search_form() {
+    ob_start();
+    // Fetch auction categories
+    $auction_categories = get_terms(array(
+        'taxonomy' => 'auction_type',
+        'hide_empty' => false,
+    ));
+    ?>
+    <form class="custom_search_wrap" action="<?php echo home_url('/auction-search-results'); ?>" method="get">
+        <div class="search_dk_wrap">
+            <input type="text" name="search_query" placeholder="Was suchst du?">
+            <select name="category">
+                <option value="">Alle Kategorien</option>
+                <?php foreach ($auction_categories as $category) : ?>
+                    <option value="<?php echo esc_attr($category->slug); ?>">
+                        <?php echo esc_html($category->name); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="search_dk_wrap">
+            <input type="text" name="location" placeholder="PLZ oder Ort">
+            <select name="radius">
+                <option value="">Ganzer Ort</option>
+                <option value="5">+ 5 km</option>
+                <option value="10">+ 10 km</option>
+            </select>
+        </div>
+        <div class="search_dk_wrap">
+            <button type="submit">Search</button>
+        </div>
+    </form>
+    <?php
+    return ob_get_clean();
+}
+
+// Hook to display the search form where needed
+add_shortcode('Auction_Search_General', 'auction_dynamic_search_form');
+
+
+function auction_register_rewrite_rules() {
+    add_rewrite_rule(
+        '^auction-search-results/?$',
+        'index.php?auction_search_results=1',
+        'top'
+    );
+}
+add_action('init', 'auction_register_rewrite_rules');
+
+function auction_register_query_vars($vars) {
+    $vars[] = 'auction_search_results';
+    $vars[] = 'search_query';
+    $vars[] = 'category';
+    $vars[] = 'location';
+    $vars[] = 'radius';
+    return $vars;
+}
+add_filter('query_vars', 'auction_register_query_vars');
+
+function auction_template_redirect() {
+    if (get_query_var('auction_search_results')) {
+        include plugin_dir_path(__FILE__) . 'templates/search-auctions.php';
+        exit();
+    }
+}
+add_action('template_redirect', 'auction_template_redirect');
+
+
 
