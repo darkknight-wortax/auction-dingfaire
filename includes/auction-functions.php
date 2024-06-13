@@ -582,7 +582,8 @@ add_action('wp_ajax_save_view_count', 'auction_save_view_count');
 // Hook to handle AJAX request for guest users
 add_action('wp_ajax_nopriv_save_view_count', 'auction_save_view_count');
 
-function auction_save_view_count() {
+function auction_save_view_count()
+{
     global $wpdb;
     $table_name = $wpdb->prefix . 'auction_view_count';
 
@@ -596,7 +597,9 @@ function auction_save_view_count() {
         // Check if this user has already viewed this post today
         $row = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $table_name WHERE post_id = %d AND user_id = %d AND time > %d",
-            $post_id, $user_id, $last_tfhrs
+            $post_id,
+            $user_id,
+            $last_tfhrs
         ));
 
         if ($row) {
@@ -607,7 +610,8 @@ function auction_save_view_count() {
         // Check if this IP has already viewed this post
         $row = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $table_name WHERE post_id = %d AND ip_address = %s",
-            $post_id, $ip_address
+            $post_id,
+            $ip_address
         ));
 
         if ($row) {
@@ -631,14 +635,17 @@ function auction_save_view_count() {
 
 
 //Search Form for Auction
-function auction_dynamic_search_form() {
+function auction_dynamic_search_form()
+{
     ob_start();
     // Fetch auction categories
     $auction_categories = get_terms(array(
         'taxonomy' => 'auction_type',
         'hide_empty' => false,
     ));
-    ?>
+    // Fetch unique locations
+    $locations = auction_get_unique_locations();
+?>
     <form class="custom_search_wrap" action="<?php echo home_url('/auction-search-results'); ?>" method="get">
         <div class="search_dk_wrap">
             <input type="text" name="search_query" placeholder="Was suchst du?">
@@ -652,18 +659,20 @@ function auction_dynamic_search_form() {
             </select>
         </div>
         <div class="search_dk_wrap">
-            <input type="text" name="location" placeholder="PLZ oder Ort">
-            <select name="radius">
-                <option value="">Ganzer Ort</option>
-                <option value="5">+ 5 km</option>
-                <option value="10">+ 10 km</option>
+            <select name="location">
+                <option value="">PLZ oder Ort</option>
+                <?php foreach ($locations as $location) : ?>
+                    <option value="<?php echo esc_attr($location); ?>">
+                        <?php echo esc_html($location); ?>
+                    </option>
+                <?php endforeach; ?>
             </select>
         </div>
         <div class="search_dk_wrap">
             <button type="submit">Search</button>
         </div>
     </form>
-    <?php
+<?php
     return ob_get_clean();
 }
 
@@ -671,7 +680,8 @@ function auction_dynamic_search_form() {
 add_shortcode('Auction_Search_General', 'auction_dynamic_search_form');
 
 
-function auction_register_rewrite_rules() {
+function auction_register_rewrite_rules()
+{
     add_rewrite_rule(
         '^auction-search-results/?$',
         'index.php?auction_search_results=1',
@@ -680,7 +690,8 @@ function auction_register_rewrite_rules() {
 }
 add_action('init', 'auction_register_rewrite_rules');
 
-function auction_register_query_vars($vars) {
+function auction_register_query_vars($vars)
+{
     $vars[] = 'auction_search_results';
     $vars[] = 'search_query';
     $vars[] = 'category';
@@ -690,7 +701,8 @@ function auction_register_query_vars($vars) {
 }
 add_filter('query_vars', 'auction_register_query_vars');
 
-function auction_template_redirect() {
+function auction_template_redirect()
+{
     if (get_query_var('auction_search_results')) {
         include plugin_dir_path(__FILE__) . 'templates/search-auctions.php';
         exit();
@@ -698,5 +710,14 @@ function auction_template_redirect() {
 }
 add_action('template_redirect', 'auction_template_redirect');
 
-
-
+function auction_get_unique_locations()
+{
+    global $wpdb;
+    $results = $wpdb->get_col("
+        SELECT DISTINCT meta_value 
+        FROM $wpdb->postmeta 
+        WHERE meta_key = 'location' 
+        AND meta_value != ''
+    ");
+    return $results;
+}
