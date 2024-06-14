@@ -208,3 +208,34 @@ function auction_save_image_gallery_field($post_id) {
         update_post_meta($post_id, 'auction_gallery_images', sanitize_text_field($_POST['auction_gallery_images']));
     }
 }
+
+
+function set_default_auction_status($post_id, $post, $update) {
+    // Check if this is an 'auction' post type and if it's not an auto-save
+    if ($post->post_type == 'auction') {
+        // If the status field does not exist, add it with a default value of 0
+        if (!get_post_meta($post_id, 'status', true)) {
+            update_post_meta($post_id, 'status', '0');
+        }
+    }
+}
+add_action('save_post', 'set_default_auction_status', 10, 3);
+
+function validate_auction_status($post_id, $post, $update) {
+    // Check if this is an 'auction' post type
+    if ($post->post_type == 'auction') {
+        // If the status field does not exist, add it with a default value of 0
+        if (!get_post_meta($post_id, 'status', true)) {
+            update_post_meta($post_id, 'status', '0');
+        } else {
+            // Validate the status value if it exists
+            $status = get_post_meta($post_id, 'status', true);
+            if (!in_array($status, array('0', '1'))) {
+                // If the status value is invalid, reset it to 0
+                update_post_meta($post_id, 'status', '0');
+            }
+        }
+    }
+}
+add_action('save_post', 'validate_auction_status', 10, 3);
+
