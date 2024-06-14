@@ -14,7 +14,8 @@ require_once plugin_dir_path(__FILE__) . 'admin/auction-settings.php';
 
 // Initialize the plugin
 add_action('init', 'auction_dingfaire_init');
-function auction_dingfaire_init() {
+function auction_dingfaire_init()
+{
     // Initialize custom post type and taxonomy
     register_auction_post_type();
     register_auction_taxonomy();
@@ -30,7 +31,8 @@ register_activation_hook(__FILE__, 'auction_flush_rewrite_rules');
 
 // Enqueue CSS and JS files
 add_action('wp_enqueue_scripts', 'auction_enqueue_scripts');
-function auction_enqueue_scripts() {
+function auction_enqueue_scripts()
+{
     // Enqueue CSS file
     wp_enqueue_style('auction-styles', plugin_dir_url(__FILE__) . 'assets/css/auction-styles.css');
 
@@ -62,13 +64,12 @@ function auction_enqueue_scripts() {
             'nonce' => wp_create_nonce('auction_view_count_nonce')
         ));
     }
-
-
 }
 
 // Add admin menu page for plugin options
 add_action('admin_menu', 'auction_options_page');
-function auction_options_page() {
+function auction_options_page()
+{
     add_menu_page(
         'Auction Settings',      // Page title
         'Auction Settings',      // Menu title
@@ -78,7 +79,8 @@ function auction_options_page() {
     );
 }
 
-function auction_settings_page() {
+function auction_settings_page()
+{
     // Check user capabilities
     if (!current_user_can('manage_options')) {
         return;
@@ -102,7 +104,7 @@ function auction_settings_page() {
     }
 
     // Display options page HTML
-    ?>
+?>
     <div class="wrap">
         <h1>Auction Settings</h1>
         <form method="post" action="">
@@ -118,20 +120,20 @@ function auction_settings_page() {
             </select>
             <br />
             <label for="bid_increment">Set Bid Increment:</label>
-            <?php 
-                $default_bid_increment = 5;
-                if(get_option('bid_increment')){
-                    $default_bid_increment = get_option('bid_increment');
-                }
+            <?php
+            $default_bid_increment = 5;
+            if (get_option('bid_increment')) {
+                $default_bid_increment = get_option('bid_increment');
+            }
             ?>
             <input type="number" id="bid_increment" name="bid_increment" value="<?php echo esc_attr($default_bid_increment); ?>"><br>
             <br />
             <label for="admin_notification_email">Admin Notification Email:</label>
-            <?php 
-                $admin_email_notif = get_bloginfo('admin_email');
-                if(get_option('admin_notification_email')){
-                    $admin_email_notif = get_option('admin_notification_email');
-                }
+            <?php
+            $admin_email_notif = get_bloginfo('admin_email');
+            if (get_option('admin_notification_email')) {
+                $admin_email_notif = get_option('admin_notification_email');
+            }
             ?>
             <input type="email" id="admin_notification_email" name="admin_notification_email" value="<?php echo esc_attr($admin_email_notif); ?>"><br>
             <br />
@@ -149,7 +151,7 @@ function auction_settings_page() {
             <input type="submit" class="button button-secondary" value="Run Scheduler Now">
         </form>
     </div>
-    <?php
+<?php
 }
 
 add_action('admin_menu', 'auction_options_page');
@@ -157,20 +159,29 @@ add_action('admin_menu', 'auction_options_page');
 
 
 
-if ( ! class_exists( 'ActionScheduler' ) ) {
-    include_once( WP_PLUGIN_DIR . '/woocommerce/packages/action-scheduler/action-scheduler.php' );
+if (!class_exists('ActionScheduler')) {
+    include_once(WP_PLUGIN_DIR . '/woocommerce/packages/action-scheduler/action-scheduler.php');
 }
 
 
-function schedule_auction_check() {
-    if ( ! as_next_scheduled_action( 'check_completed_auctions' ) ) {
-        as_schedule_recurring_action( time(), 300, 'check_completed_auctions' ); // Run every 2.5 minutes
+function schedule_auction_check()
+{
+
+    if (!wp_next_scheduled('check_completed_auctions')) {
+        if (wp_schedule_event(time(), 'hourly', 'check_completed_auctions')) {
+            error_log('Auction Scheduler Run');
+        } else {
+            error_log('Failed to Run Action Schedule');
+        }
+    } else {
+        error_log('Auction Scheduler: Scheduled event already exists.');
     }
 }
-add_action( 'init', 'schedule_auction_check' );
+add_action('init', 'schedule_auction_check');
 
 
-function check_completed_auctions() {
+function check_completed_auctions()
+{
     global $wpdb;
 
     $current_time = current_time('mysql');
@@ -194,11 +205,11 @@ function check_completed_auctions() {
         ),
         'posts_per_page' => -1
     );
-    $completed_auctions = get_posts( $args );
+    $completed_auctions = get_posts($args);
 
-    print_r($current_time );
+    print_r($current_time);
 
-    foreach ( $completed_auctions as $auction ) {
+    foreach ($completed_auctions as $auction) {
         $post_id = $auction->ID;
 
         // Get the highest bid
@@ -209,49 +220,50 @@ function check_completed_auctions() {
             )
         );
         $shipping_fee = get_post_meta($post_id, 'shipping_fee', true);
-        if(!$shipping_fee){
+        if (!$shipping_fee) {
             $shipping_fee = 0;
         }
-        if ( $highest_bid ) {
+        if ($highest_bid) {
             // Create a WooCommerce product
             $product = new WC_Product_Simple();
-            $product->set_name( $auction->post_title );
-            $product->set_description( $auction->post_content );
-            $product->set_regular_price( $highest_bid->bidding_amount + (int)$shipping_fee );
-            $product->set_status( 'publish' );
-            $product->set_stock_quantity( 1 ); 
+            $product->set_name($auction->post_title);
+            $product->set_description($auction->post_content);
+            $product->set_regular_price($highest_bid->bidding_amount + (int)$shipping_fee);
+            $product->set_status('publish');
+            $product->set_stock_quantity(1);
             $product->save();
 
             // Update auction status to 1
-            update_post_meta( $post_id, 'status', '1' );
+            update_post_meta($post_id, 'status', '1');
 
             // Restrict product visibility to the highest bidder
             $highest_bidder_id = $highest_bid->user_id;
-            update_post_meta( $product->get_id(), '_highest_bidder_id', $highest_bidder_id );
+            update_post_meta($product->get_id(), '_highest_bidder_id', $highest_bidder_id);
         }
     }
 }
-add_action( 'check_completed_auctions', 'check_completed_auctions' );
+add_action('check_completed_auctions', 'check_completed_auctions');
 
 
-function restrict_product_visibility_to_highest_bidder( $query ) {
-    if ( is_admin() || ! $query->is_main_query() ) {
+function restrict_product_visibility_to_highest_bidder($query)
+{
+    if (is_admin() || !$query->is_main_query()) {
         return;
     }
 
-    if ( is_product() ) {
+    if (is_product()) {
         $product_id = get_the_ID();
-        $highest_bidder_id = get_post_meta( $product_id, '_highest_bidder_id', true );
+        $highest_bidder_id = get_post_meta($product_id, '_highest_bidder_id', true);
 
-        if ( $highest_bidder_id && get_current_user_id() != $highest_bidder_id ) {
+        if ($highest_bidder_id && get_current_user_id() != $highest_bidder_id) {
             // Redirect to 404 if the user is not the highest bidder
             global $wp_query;
             $wp_query->set_404();
-            status_header( 404 );
+            status_header(404);
             nocache_headers();
-            include( get_query_template( '404' ) );
+            include(get_query_template('404'));
             exit;
         }
     }
 }
-add_action( 'pre_get_posts', 'restrict_product_visibility_to_highest_bidder' );
+add_action('pre_get_posts', 'restrict_product_visibility_to_highest_bidder');
