@@ -54,8 +54,11 @@ if (have_posts()) :
             $default_bid_increment = get_option('bid_increment');
         }
 
-
-        $view_count = $wpdb->get_results("SELECT COUNT(id) as c_id FROM ".$wpdb->prefix."auction_view_count WHERE post_id = '".$post_id."' ")[0]->c_id; 
+		$view_count = 0;
+        $vc_query = $wpdb->get_results("SELECT COUNT(id) as c_id FROM ".$wpdb->prefix."auction_view_count WHERE post_id = '".$post_id."' ");
+if($vc_query){
+	$view_count = $vc_query[0]->c_id;
+}
 
 
 ?>
