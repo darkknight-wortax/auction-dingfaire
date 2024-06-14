@@ -132,6 +132,7 @@ function auction_add_rewrite_rules()
 {
     add_rewrite_rule('^my-auctions/my-bids/?', 'index.php?auction_page=my-bids', 'top');
     add_rewrite_rule('^my-auctions/submit-auction/?', 'index.php?auction_page=submit-auction', 'top');
+    add_rewrite_rule('^my-auctions/won/?', 'index.php?auction_page=my-won-products', 'top');
 }
 add_action('init', 'auction_add_rewrite_rules');
 
@@ -153,6 +154,9 @@ function auction_template_include($template)
         return plugin_dir_path(__FILE__) . 'templates/my-auctions/my-bids-template.php';
     } elseif ($auction_page == 'submit-auction') {
         return plugin_dir_path(__FILE__) . 'templates/my-auctions/submit-auction-template.php';
+    }
+    elseif (get_query_var('auction_page') == 'my-won-products') { 
+        return plugin_dir_path(__FILE__) . 'templates/my-auctions/my-won-products.php';
     }
     if (strpos($url, 'my-auctions') !== false) {
         return plugin_dir_path(__FILE__) . 'templates/page-my-auctions.php';

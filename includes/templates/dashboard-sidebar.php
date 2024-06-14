@@ -18,4 +18,7 @@ $get_url = get_site_url();
     <li class="<?php echo ($current_url == $get_url.'/my-auctions/submit-auction/') ? 'active-menu' : ''; ?>">
         <a href="<?php echo $get_url?>/my-auctions/submit-auction/">Submit Auction</a>
     </li>
+    <li class="<?php echo ($current_url == $get_url.'/my-auctions/submit-auction/') ? 'active-menu' : ''; ?>">
+        <a href="<?php echo $get_url?>/my-auctions/won/">Auctions Won</a>
+    </li>
 </ul>

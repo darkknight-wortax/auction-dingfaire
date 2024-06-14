@@ -164,7 +164,7 @@ if ( ! class_exists( 'ActionScheduler' ) ) {
 
 function schedule_auction_check() {
     if ( ! as_next_scheduled_action( 'check_completed_auctions' ) ) {
-        as_schedule_recurring_action( time(), 150, 'check_completed_auctions' ); // Run every 2.5 minutes
+        as_schedule_recurring_action( time(), 300, 'check_completed_auctions' ); // Run every 2.5 minutes
     }
 }
 add_action( 'init', 'schedule_auction_check' );
@@ -173,7 +173,7 @@ add_action( 'init', 'schedule_auction_check' );
 function check_completed_auctions() {
     global $wpdb;
 
-    $current_time = date("Y-m-dTH:i:s");
+    $current_time = current_time('mysql');
     $table_name = $wpdb->prefix . 'auction_bidding';
 
     // Get all completed auctions
@@ -196,7 +196,7 @@ function check_completed_auctions() {
     );
     $completed_auctions = get_posts( $args );
 
-    print_r($completed_auctions );
+    print_r($current_time );
 
     foreach ( $completed_auctions as $auction ) {
         $post_id = $auction->ID;
@@ -219,6 +219,7 @@ function check_completed_auctions() {
             $product->set_description( $auction->post_content );
             $product->set_regular_price( $highest_bid->bidding_amount + (int)$shipping_fee );
             $product->set_status( 'publish' );
+            $product->set_stock_quantity( 1 ); 
             $product->save();
 
             // Update auction status to 1
