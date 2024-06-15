@@ -246,6 +246,7 @@ function check_completed_auctions()
             $product->set_description($auction->post_content);
             $product->set_regular_price($highest_bid->bidding_amount + (int)$shipping_fee);
             $product->set_status('publish');
+			$product->set_manage_stock(true);
             $product->set_stock_quantity(1);
             $product->save();
 
