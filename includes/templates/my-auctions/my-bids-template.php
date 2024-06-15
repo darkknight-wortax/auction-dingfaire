@@ -14,7 +14,11 @@ get_header();
             if (!is_user_logged_in()) {
                 echo '<p>Please login to view your bids.</p>';
             } else {
-                $auction_id = $_GET['auction'];
+				$auction_id = 0;
+				if(isset($_GET['auction'])){
+					$auction_id = $_GET['auction'];	
+				}
+                
                 if ($auction_id) {
                     include_once(plugin_dir_path(__FILE__) . './user-bids.php');
                 } else {
