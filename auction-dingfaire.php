@@ -164,20 +164,36 @@ if (!class_exists('ActionScheduler')) {
 }
 
 
-function schedule_auction_check()
-{
+// Add a custom interval of 2 minutes
+function add_custom_cron_intervals($schedules) {
+    $schedules['every_two_minutes'] = array(
+        'interval' => 120, // 2 minutes in seconds
+        'display'  => __('Every 2 Minutes')
+    );
+    return $schedules;
+}
+add_filter('cron_schedules', 'add_custom_cron_intervals');
 
+// Step 2: Schedule the event to run every 2 minutes
+function schedule_auction_check() {
     if (!wp_next_scheduled('check_completed_auctions')) {
-        if (wp_schedule_event(time(), 'hourly', 'check_completed_auctions')) {
-            error_log('Auction Scheduler Run');
-        } else {
-            error_log('Failed to Run Action Schedule');
-        }
-    } else {
-        error_log('Auction Scheduler: Scheduled event already exists.');
+        wp_schedule_event(time(), 'every_two_minutes', 'check_completed_auctions');
     }
 }
 add_action('init', 'schedule_auction_check');
+
+function debug_notices_auc()
+    {
+        if (current_user_can('manage_options')) {
+            $scheduled = wp_next_scheduled('check_completed_auctions');
+            if ($scheduled) {
+                echo '<div class="notice notice-success"><p>Auction Completion Checker: Next sync scheduled for ' . date('Y-m-d H:i:s', $scheduled) . '</p></div>';
+            } else {
+                echo '<div class="notice notice-error"><p>Auction Completion Checker: No sync scheduled.</p></div>';
+            }
+        }
+    }
+add_action('admin_notices', 'debug_notices_auc');
 
 
 function check_completed_auctions()
@@ -207,7 +223,7 @@ function check_completed_auctions()
     );
     $completed_auctions = get_posts($args);
 
-    print_r($current_time);
+    print_r($completed_auctions);
 
     foreach ($completed_auctions as $auction) {
         $post_id = $auction->ID;
