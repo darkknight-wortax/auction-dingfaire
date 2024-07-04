@@ -725,3 +725,167 @@ function auction_get_unique_locations()
     ");
     return $results;
 }
+
+
+
+//Dingfast Pages Shortcode
+function auctions_ending_soon($atts) {
+    global $wpdb;
+
+    // Default attributes
+    $atts = shortcode_atts(
+        array(
+            'minutes' => 60, // Default to 60 minutes if not specified
+        ),
+        $atts,
+        'auctions_ending_soon'
+    );
+
+    // Calculate the target datetime
+    $current_time = current_time('mysql');
+    $target_time = date('Y-m-d H:i:s', strtotime("+{$atts['minutes']} minutes", strtotime($current_time)));
+
+    echo '<br>';
+        print_r($current_time);
+    echo '<br>';
+
+    echo '<br>';
+        print_r($target_time);
+    echo '<br>';
+
+    // WP_Query arguments
+    $args = array(
+        'post_type' => 'auction',
+        'meta_query' => array(
+            'relation' => 'AND',
+            array(
+                'key' => 'end_datetime',
+                'value' => $target_time,
+                'compare' => '<=',
+                'type' => 'DATETIME'
+            ),
+            array(
+                'key' => 'end_datetime',
+                'value' => $current_time,
+                'compare' => '>=',
+                'type' => 'DATETIME'
+            )
+        ),
+        'posts_per_page' => -1
+    );
+
+    // The Query
+    $query = new WP_Query($args);
+
+    // Check if there are any posts to display
+    if ($query->have_posts()) {
+        ob_start(); // Start output buffering
+        ?>
+        <ul class="auctions_listing_wrapper">
+            <?php
+            while ($query->have_posts()) {
+                $query->the_post();
+                $post_id = get_the_ID();
+                $current_currency = get_option('auction_currency_general_dk');
+
+                // Retrieve the last bid
+                $last_bid_query = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}auction_bidding WHERE post_id = $post_id ORDER BY ID DESC LIMIT 1");
+                $last_bid = !empty($last_bid_query) ? $last_bid_query[0]->bidding_amount : null;
+
+                $start_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'start_datetime', true)));
+                $end_datetime = date("Y-m-d H:i:s", strtotime(get_post_meta($post_id, 'end_datetime', true)));
+
+                // Setting Up Shipping Fee
+                $shipping_fee = get_post_meta($post_id, 'shipping_fee', true) ?: 0;
+
+                $location = get_post_meta($post_id, 'location', true);
+                $initial_cost = (int)get_post_meta($post_id, 'initial_cost', true) + (int)$shipping_fee;
+                $current_cost = $initial_cost;
+                if ($last_bid) {
+                    $current_cost = (int)$last_bid + (int)$shipping_fee;
+                }
+
+                // Output the featured image
+                $featured_image = get_the_post_thumbnail_url() ? '<img src="' . get_the_post_thumbnail_url(null, 'full') . '" alt="Featured Image" />' : '<img src="' . esc_url(plugin_dir_url(__FILE__) . '../../assets/images/thumbnail-auction.png') . '" alt="No Image Available" />';
+                ?>
+                <li>
+                    <div class="auction_listing_feat_wrap">
+                        <a href="<?php the_permalink(); ?>"><?php echo $featured_image; ?></a>
+                    </div>
+                    <div class="auction_listing_content_wrap">
+                        <div class="auction_listing_title_area">
+                            <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+
+                            <?php if (!empty($initial_cost)) { ?>
+                                <p>Initial Cost: <?php echo esc_html($current_currency . $initial_cost); ?></p>
+                            <?php } ?>
+                            <?php if ($last_bid) { ?>
+                                <p>Latest Bid: <span id="latest_bid"><?php echo esc_html($current_currency . ((int)$last_bid + (int)$shipping_fee)); ?></span></p>
+                            <?php } ?>
+                            <?php if (!empty($location)) { ?>
+                                <p><?php echo 'Location: ' . esc_html($location); ?></p>
+                            <?php } ?>
+                        </div>
+                        <div class="auction_listing_timer">
+                            <?php if (!empty($initial_cost)) { ?>
+                                <div id="dk_timer_auction_<?php echo esc_attr($post_id); ?>"></div>
+                            <?php } ?>
+                        </div>
+                    </div>
+                    <script>
+                        jQuery(document).ready(function($) {
+                            function updateCountdown() {
+                                const targetDate = new Date("<?php echo esc_js($end_datetime); ?>");
+                                const startDatetime = new Date("<?php echo esc_js($start_datetime); ?>");
+                                const now = new Date();
+
+                                const timeDifference = targetDate - now;
+                                const check_start = now - startDatetime;
+
+                                if (check_start <= 0) {
+                                    let elem_c = document.getElementById("dk_timer_auction_<?php echo esc_js($post_id); ?>");
+                                    elem_c.innerHTML = "<div class='aunction-start aunction-dates'>Auction will start on: <?php echo esc_js($start_datetime); ?></div>";
+                                    return;
+                                }
+
+                                if (timeDifference <= 0) {
+                                    let elem_c = document.getElementById("dk_timer_auction_<?php echo esc_js($post_id); ?>");
+                                    elem_c.innerHTML = "<div class='aunction-end aunction-dates'>Auction has been ended</div>";
+                                    return;
+                                }
+
+                                const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+                                const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+                                const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+                                const daysString = days < 10 ? "0" + days : days;
+                                const hoursString = hours < 10 ? "0" + hours : hours;
+                                const minutesString = minutes < 10 ? "0" + minutes : minutes;
+                                const secondsString = seconds < 10 ? "0" + seconds : seconds;
+
+                                let day_display = "<div class='timer_area'>";
+                                if (days > 0) {
+                                    day_display = "<div class='timer_area'><div class='itm_dk day_dk'><span class='itm_prefix_dk'>Day</span><span class='itm_value_dk'>" + daysString + "</span></div> ";
+                                }
+                                document.getElementById("dk_timer_auction_<?php echo esc_js($post_id); ?>").innerHTML = day_display + "<div class='itm_dk'><span class='itm_prefix_dk'>Hr</span><span class='itm_value_dk'>" + hoursString + "</span></div>:<div class='itm_dk'><span class='itm_prefix_dk'>Min</span><span class='itm_value_dk'>" + minutesString + "</span></div>:<div class='itm_dk'><span class='itm_prefix_dk'>Sec</span><span class='itm_value_dk'>" + secondsString + "</span></div></div>";
+                            }
+
+                            setInterval(updateCountdown, 1000);
+                            updateCountdown();
+                        });
+                    </script>
+                </li>
+                <?php
+            }
+            ?>
+        </ul>
+        <?php
+        return ob_get_clean(); // Return the buffered content
+    } else {
+        return '<p>No auctions found.</p>';
+    }
+}
+add_shortcode('auctions_ending_soon', 'auctions_ending_soon');
+
+
