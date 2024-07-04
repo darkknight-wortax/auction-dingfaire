@@ -756,7 +756,7 @@ function auctions_ending_soon($atts) {
     // WP_Query arguments
     $args = array(
         'post_type' => 'auction',
-        'meta_query' => array(
+        'meta_query' => array( 
             'relation' => 'AND',
             array(
                 'key' => 'end_datetime',
