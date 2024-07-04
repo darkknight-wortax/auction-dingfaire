@@ -661,8 +661,6 @@ function auction_dynamic_search_form()
                     </option>
                 <?php endforeach; ?>
             </select>
-        </div>
-        <div class="search_dk_wrap">
             <select name="location">
                 <option value="">PLZ oder Ort</option>
                 <?php foreach ($locations as $location) : ?>
@@ -672,9 +670,9 @@ function auction_dynamic_search_form()
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="search_dk_wrap">
-            <button type="submit">Search</button>
-        </div>
+		<div class="search_submit_wrap">
+				<button type="submit">Search</button>
+		</div>
     </form>
 <?php
     return ob_get_clean();
@@ -887,5 +885,3 @@ function auctions_ending_soon($atts) {
     }
 }
 add_shortcode('auctions_ending_soon', 'auctions_ending_soon');
-
-
